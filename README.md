@@ -66,3 +66,16 @@ YourResponse response = service.yourMethod(controller, request); // your method 
 
 // show response in UI
 ```
+## How to compile
+
+Built is made using Maven.
+
+### Requirements
+1. Protobuf jar: make sure you have `com.google.protobuf:protobuf-java:2.6.1` for protobuf 2.6.1 installed in local maven repo.
+
+2. https://github.com/4ntoine/protobuf-socket-rpc. Install it in local maven repo (using `mvn install`). 
+
+3. Android jar: make sure you have `com.google.android:android:5.0` installed in local maven repo. Use maven install plugin to install android.jar from Android SDK as maven artifact.
+
+Now compile protobuf-ble-rpc:
+> mvn clean install
