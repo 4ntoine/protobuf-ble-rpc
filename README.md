@@ -30,7 +30,8 @@ service YourService {
 ### Server-side (BLE peripheral)
 
 ```
-ServerRpcConnectionFactory rpcConnectionFactory = new ServerBleRpcConnectionFactory(this,
+ServerRpcConnectionFactory rpcConnectionFactory = new ServerBleRpcConnectionFactory(
+	this, // android context
     "6855f2ce-8dc6-4228-8bec-531167e00111", // service UUID
     "09de1235-6594-4a2b-8d88-ad5eb8c00222", // write characteristic UUID
     "c3a29c57-7a4b-492c-b7c4-7d807f000333", // read characteristic UUID
@@ -50,7 +51,7 @@ server.shutDown();
 
 ```
 RpcConnectionFactory connectionFactory = new BleRpcConnectionFactory(
-        MyActivity.this, // context
+        MyActivity.this, // android context
         "6855f2ce-8dc6-4228-8bec-531167e00111", // service UUID
         "09de1235-6594-4a2b-8d88-ad5eb8c00222", // write characteristic UUID
         "c3a29c57-7a4b-492c-b7c4-7d807f000333", // read characteristic UUID
