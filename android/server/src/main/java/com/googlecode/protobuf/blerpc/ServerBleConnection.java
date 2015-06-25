@@ -1,6 +1,7 @@
-package com.googlecode.protobuf.socketrpc;
+package com.googlecode.protobuf.blerpc;
 
 import com.google.protobuf.MessageLite;
+import com.googlecode.protobuf.socketrpc.RpcConnectionFactory;
 
 import java.io.IOException;
 

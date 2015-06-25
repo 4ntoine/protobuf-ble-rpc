@@ -1,9 +1,10 @@
-package com.googlecode.protobuf.socketrpc;
+package com.googlecode.protobuf.blerpc;
 
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattDescriptor;
 import com.google.protobuf.MessageLite;
+import com.googlecode.protobuf.socketrpc.RpcConnectionFactory;
 
 import java.io.*;
 import java.util.UUID;

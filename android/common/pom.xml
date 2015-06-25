@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project
+        xmlns="http://maven.apache.org/POM/4.0.0"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>	
+	
+	<parent>
+		<groupId>com.googlecode.protobuf.blerpc</groupId>
+		<artifactId>parent</artifactId>
+		<version>1.0</version>
+	</parent>
+	
+	<groupId>com.googlecode.protobuf.blerpc</groupId>
+    <artifactId>common</artifactId>
+    <version>${version}</version>
+    <name>common</name>
+	<description>Protobuf BLE RPC : common files for client and server</description>
+
+    <developers>
+        <developer>
+            <name>Anton Smirnov</name>
+            <email>dev@antonsmirnov.name</email>
+        </developer>
+    </developers>	
+
+    <dependencies>
+        <!-- android -->
+        <dependency>
+            <groupId>com.google.android</groupId>
+            <artifactId>android</artifactId>
+            <version>5.0</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- protobuf -->
+        <dependency>
+            <groupId>com.google.protobuf</groupId>
+            <artifactId>protobuf-java</artifactId>
+            <version>${protobuf.version}</version>
+        </dependency>
+
+        <!-- protobuf socket rpc -->
+        <dependency>
+            <groupId>com.googlecode.protobuf.socketrpc</groupId>
+            <artifactId>protobuf-socket-rpc</artifactId>
+            <version>2.1.0</version>
+        </dependency>
+
+    </dependencies>
+
+</project>

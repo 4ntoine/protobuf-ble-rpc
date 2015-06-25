@@ -1,4 +1,4 @@
-package com.googlecode.protobuf.socketrpc;
+package com.googlecode.protobuf.blerpc;
 
 /**
  *

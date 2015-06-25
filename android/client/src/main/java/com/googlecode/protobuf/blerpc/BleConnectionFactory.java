@@ -1,7 +1,8 @@
-package com.googlecode.protobuf.socketrpc;
+package com.googlecode.protobuf.blerpc;
 
 import android.bluetooth.*;
 import android.content.Context;
+import com.googlecode.protobuf.socketrpc.RpcConnectionFactory;
 
 import java.io.IOException;
 import java.util.UUID;
@@ -10,7 +11,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  *
  */
-public class BleConnectionFactory extends BluetoothGattCallback implements RpcConnectionFactory  {
+public class BleConnectionFactory extends BluetoothGattCallback implements RpcConnectionFactory {
 
     private Context context;
     private BluetoothAdapter adapter;

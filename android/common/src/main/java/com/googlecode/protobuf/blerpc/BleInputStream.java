@@ -1,4 +1,4 @@
-package com.googlecode.protobuf.socketrpc;
+package com.googlecode.protobuf.blerpc;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -67,7 +67,6 @@ public class BleInputStream extends InputStream {
 
         // check need reset indices
         checkReset();
-
 
         Logger.get().log("BleInputStream.read() finished");
 

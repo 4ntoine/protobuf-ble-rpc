@@ -1,4 +1,4 @@
-package com.googlecode.protobuf.socketrpc;
+package com.googlecode.protobuf.blerpc;
 
 import android.app.Activity;
 import android.bluetooth.*;
@@ -9,6 +9,7 @@ import android.bluetooth.le.BluetoothLeAdvertiser;
 import android.content.Context;
 import android.os.ParcelUuid;
 import android.widget.Toast;
+import com.googlecode.protobuf.socketrpc.ServerRpcConnectionFactory;
 
 import java.io.IOException;
 import java.util.Arrays;
