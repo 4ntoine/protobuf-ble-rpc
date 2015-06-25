@@ -22,7 +22,7 @@ message YourResponse {
 	required string result = 1;
 }
 
-service InstallService {
+service YourService {
 	rpc yourMethod (YourRequest) returns (YourResponse);
 }
 ```
@@ -57,10 +57,10 @@ RpcConnectionFactory connectionFactory = new BleConnectionFactory(
         true
 );
 BlockingRpcChannel channel = RpcChannels.newBlockingRpcChannel(connectionFactory);
-YourServiceService.BlockingInterface service = YourServiceService.newBlockingStub(channel); // your service stub
+YourService.BlockingInterface service = YourService.newBlockingStub(channel); // your service stub
 RpcController controller = new SocketRpcController();
 
-YourRequest request = YourMethodRequest.newBuilder().build(); // your method argument
+YourRequest request = YourRequest.newBuilder().build(); // your method argument
 YourResponse response = service.yourMethod(controller, request); // your method invocation and response
 
 // show response in UI
