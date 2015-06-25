@@ -12,6 +12,21 @@ See:
 
 ## Usage
 
+api.proto:
+```
+message YourRequest {
+	optional int32 timeout = 1;
+}
+
+message YourResponse {
+	required string result = 1;
+}
+
+service InstallService {
+	rpc yourMethod (YourRequest) returns (YourResponse);
+}
+```
+
 ### Server-side (BLE peripheral)
 
 ```
@@ -22,7 +37,7 @@ ServerRpcConnectionFactory rpcConnectionFactory = new ServerBleRpcConnectionFact
     true);
 
 RtspServer server = new RpcServer(rpcConnectionFactory, Executors.newFixedThreadPool(1), true);
-InstallServiceImpl service = new InstallServiceImpl(this); // your service impl
+YourServiceImpl service = new YourServiceImpl(this); // your service impl
 server.registerService(service); // For non-blocking impl
 server.startServer();
 
@@ -42,11 +57,11 @@ RpcConnectionFactory connectionFactory = new BleConnectionFactory(
         true
 );
 BlockingRpcChannel channel = RpcChannels.newBlockingRpcChannel(connectionFactory);
-TestInstallService.BlockingInterface service = TestInstallService.newBlockingStub(channel); // your service stub
+YourServiceService.BlockingInterface service = YourServiceService.newBlockingStub(channel); // your service stub
 RpcController controller = new SocketRpcController();
 
-Wifi.WifiRequest request = Wifi.WifiRequest.newBuilder().build(); // your method argument
-Wifi.WifiResponse response = service.getWifiNetworks(controller, request); // your method invocation
+YourRequest request = YourMethodRequest.newBuilder().build(); // your method argument
+YourResponse response = service.yourMethod(controller, request); // your method invocation and response
 
 // show response in UI
 ```
