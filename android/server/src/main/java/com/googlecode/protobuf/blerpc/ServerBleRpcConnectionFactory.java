@@ -49,7 +49,7 @@ public class ServerBleRpcConnectionFactory implements ServerRpcConnectionFactory
     }
 
     public ServerBleRpcConnectionFactory(
-            final Context context,
+            Context context,
             String serviceUUID,
             String readCharacteristicUUID,
             String writeCharacteristicUUID,
