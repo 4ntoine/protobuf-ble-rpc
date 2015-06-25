@@ -11,7 +11,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  *
  */
-public class BleConnectionFactory extends BluetoothGattCallback implements RpcConnectionFactory {
+public class BleRpcConnectionFactory extends BluetoothGattCallback implements RpcConnectionFactory {
 
     private Context context;
     private BluetoothAdapter adapter;
@@ -28,7 +28,7 @@ public class BleConnectionFactory extends BluetoothGattCallback implements RpcCo
     private volatile boolean serverDiscovered = false;
     private AtomicBoolean connected = new AtomicBoolean(false);
 
-    public BleConnectionFactory(Context context, String serviceUUID, String readCharUUID, String writeCharUUID, boolean delimited) {
+    public BleRpcConnectionFactory(Context context, String serviceUUID, String readCharUUID, String writeCharUUID, boolean delimited) {
         this.context = context;
         adapter = BluetoothAdapter.getDefaultAdapter();
 
@@ -137,7 +137,7 @@ public class BleConnectionFactory extends BluetoothGattCallback implements RpcCo
             serverDiscovered = true;
             adapter.stopLeScan(scanCallback);
 
-            gattConnection = device.connectGatt(context, false, BleConnectionFactory.this);
+            gattConnection = device.connectGatt(context, false, BleRpcConnectionFactory.this);
             gattConnection.connect();
         }
     };

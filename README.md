@@ -49,7 +49,7 @@ server.shutDown();
 ### Client-side (BLE central)
 
 ```
-RpcConnectionFactory connectionFactory = new BleConnectionFactory(
+RpcConnectionFactory connectionFactory = new BleRpcConnectionFactory(
         MyActivity.this, // context
         "6855f2ce-8dc6-4228-8bec-531167e00111", // service UUID
         "09de1235-6594-4a2b-8d88-ad5eb8c00222", // write characteristic UUID
