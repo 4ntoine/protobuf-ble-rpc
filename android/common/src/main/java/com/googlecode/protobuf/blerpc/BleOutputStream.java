@@ -1,6 +1,8 @@
 package com.googlecode.protobuf.blerpc;
 
 import android.bluetooth.BluetoothGattCharacteristic;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -11,6 +13,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Output stream for BLE
  */
 public abstract class BleOutputStream extends OutputStream {
+
+    private Logger logger = LoggerFactory.getLogger(this.getClass().getSimpleName());
 
     public static final int OUTPUT_BUFFER_SIZE = 10 * 1024; // 10 Kb
 
@@ -79,6 +83,7 @@ public abstract class BleOutputStream extends OutputStream {
 
         // prepare packet
         int packetLength = Math.min(20, remainingLength);
+        logger.debug("sending packet: " + packetLength + " bytes");
         lastPacket = new byte[packetLength];
         System.arraycopy(buffer, writtenLength.get(), lastPacket, 0, packetLength);
 
@@ -101,6 +106,8 @@ public abstract class BleOutputStream extends OutputStream {
 
     @Override
     public void write(int i) throws IOException {
+        logger.debug("write(i)");
+
         if (closed)
             return;
 
@@ -113,6 +120,8 @@ public abstract class BleOutputStream extends OutputStream {
 
         _writePacket();
         waitWritten(1);  // blocks until actually written
+
+        logger.debug("write(i) finished");
     }
 
     @Override
@@ -128,6 +137,8 @@ public abstract class BleOutputStream extends OutputStream {
         if (writing.get())
             throw new IllegalStateException("Already writing");
 
+        logger.debug("write() " + outputLength + " bytes");
+
         // prepare buffer for writing
         writing.set(true);
         System.arraycopy(output, offset, buffer, writtenLength.get(), outputLength);
@@ -137,13 +148,15 @@ public abstract class BleOutputStream extends OutputStream {
             throw new IOException("Failed to write BLE characteristic");
         waitWritten(outputLength); // blocks until actually written
         _reset(true);
+
+        logger.debug("write() finished");
     }
 
     private boolean closed = false;
 
     @Override
     public void close() throws IOException {
-        super.close();
+        logger.debug("read()");
 
         closed = true;
         _reset(true);

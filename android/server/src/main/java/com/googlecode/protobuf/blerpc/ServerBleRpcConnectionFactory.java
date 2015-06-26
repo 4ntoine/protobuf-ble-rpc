@@ -10,6 +10,8 @@ import android.content.Context;
 import android.os.ParcelUuid;
 import android.widget.Toast;
 import com.googlecode.protobuf.socketrpc.ServerRpcConnectionFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -22,6 +24,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * RpcConnectionFactory for BLE (peripheral role)
  */
 public class ServerBleRpcConnectionFactory implements ServerRpcConnectionFactory {
+
+    private Logger logger = LoggerFactory.getLogger(ServerBleRpcConnectionFactory.class.getSimpleName());
 
     private Map<BluetoothDevice, ServerBleConnection> connections =
             new HashMap<BluetoothDevice, ServerBleConnection>();
@@ -73,7 +77,7 @@ public class ServerBleRpcConnectionFactory implements ServerRpcConnectionFactory
                     connections.put(device, newConnection);
                     newConnectionReceived.set(true); // signal new connection
 
-                    Logger.get().log(getClass().getSimpleName() + " Client connected: " + device.toString());
+                    logger.debug("Client connected: " + device.toString());
                 }
 
                 if (newState == BluetoothGatt.STATE_DISCONNECTED) {
@@ -86,18 +90,18 @@ public class ServerBleRpcConnectionFactory implements ServerRpcConnectionFactory
                     }
                     connections.remove(connection);
 
-                    Logger.get().log(getClass().getSimpleName() + " Client disconnected");
+                    logger.debug("Client disconnected");
                 }
             }
 
             @Override
             public void onDescriptorReadRequest(BluetoothDevice device, int requestId, int offset, BluetoothGattDescriptor descriptor) {
-                Logger.get().log(getClass().getSimpleName() + " onDescriptorReadRequest()");
+                logger.debug("onDescriptorReadRequest()");
 
                 // send current subscription state
                 ServerBleConnection connection = connections.get(device);
                 if (connection == null) {
-                    Logger.get().log(getClass().getSimpleName() + " Connection not found");
+                    logger.error("Connection not found");
                     throw new IllegalStateException("Connection not found");
                 }
 
@@ -110,7 +114,7 @@ public class ServerBleRpcConnectionFactory implements ServerRpcConnectionFactory
             @Override
             public void onDescriptorWriteRequest(BluetoothDevice device, int requestId, BluetoothGattDescriptor descriptor,
                                                  boolean preparedWrite, boolean responseNeeded, int offset, byte[] value) {
-                Logger.get().log("onDescriptorWriteRequest() " + value + " bytes");
+                logger.debug("onDescriptorWriteRequest()");
 
                 // subscribe/unsubscribe
                 ServerBleConnection connection = connections.get(device);
@@ -122,11 +126,11 @@ public class ServerBleRpcConnectionFactory implements ServerRpcConnectionFactory
                     Arrays.equals(value, BluetoothGattDescriptor.ENABLE_INDICATION_VALUE)) {
                     connection.setSubscribed(true);
 
-                    Logger.get().log(getClass().getSimpleName() + " Client subscribed to changes");
+                    logger.debug("Client subscribed to changes");
                 } else if (Arrays.equals(value, BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE)) {
                     connection.setSubscribed(false);
 
-                    Logger.get().log(getClass().getSimpleName() + " Client unsubscribed");
+                    logger.debug("Client unsubscribed");
                 }
 
                 // send write confirmation
@@ -136,7 +140,7 @@ public class ServerBleRpcConnectionFactory implements ServerRpcConnectionFactory
             @Override
             public void onCharacteristicWriteRequest(BluetoothDevice device, int requestId, BluetoothGattCharacteristic characteristic,
                                                      boolean preparedWrite, boolean responseNeeded, int offset, byte[] value) {
-                Logger.get().log("onCharacteristicWriteRequest() " + value.length + " bytes");
+                logger.debug("onCharacteristicWriteRequest() " + value.length + " bytes");
 
                 // send write confirmation
                 server.sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS, offset, value);
@@ -150,12 +154,12 @@ public class ServerBleRpcConnectionFactory implements ServerRpcConnectionFactory
 
                 connection.getIn().doRead(value);
 
-                Logger.get().log("Value written " + + value.length + " bytes");
+               logger.debug("Value written " + + value.length + " bytes");
             }
 
             @Override
             public void onCharacteristicReadRequest(BluetoothDevice device, int requestId, int offset, BluetoothGattCharacteristic characteristic) {
-                Logger.get().log("onCharacteristicReadRequest()");
+               logger.debug("onCharacteristicReadRequest()");
 
                 // send value
                 server.sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS, offset, characteristic.getValue());
@@ -167,12 +171,12 @@ public class ServerBleRpcConnectionFactory implements ServerRpcConnectionFactory
                 // as client reads we need notify output stream to set new value (remaining bytes)
                 connection.getOut().notifyWritten();
 
-                Logger.get().log("Value read " + characteristic.getValue());
+               logger.debug("Value read " + characteristic.getValue());
             }
 
             @Override
             public void onNotificationSent(BluetoothDevice device, int status) {
-                Logger.get().log("onNotificationSent: status = " + status);
+               logger.debug("onNotificationSent: status = " + status);
 
                 ServerBleConnection connection = connections.get(device);
                 if (connection == null)
@@ -220,7 +224,7 @@ public class ServerBleRpcConnectionFactory implements ServerRpcConnectionFactory
     }
 
     private void startAdvertising(UUID serviceUUID, BluetoothLeAdvertiser advertiser) {
-        Logger.get().log("Starting advertising ...");
+       logger.debug("Starting advertising ...");
         AdvertiseSettings settings = new AdvertiseSettings.Builder()
                 .setConnectable(true)
                 .setAdvertiseMode(AdvertiseSettings.ADVERTISE_MODE_LOW_LATENCY)
@@ -242,7 +246,7 @@ public class ServerBleRpcConnectionFactory implements ServerRpcConnectionFactory
                 startedSuccessfully.set(true);
                 started.set(true);
 
-                Logger.get().log("Started advertising");
+               logger.debug("Started advertising");
             }
 
             @Override
@@ -252,7 +256,7 @@ public class ServerBleRpcConnectionFactory implements ServerRpcConnectionFactory
                 startedSuccessfully.set(false);
                 started.set(true);
 
-                Logger.get().log("Failed to advertise");
+               logger.debug("Failed to advertise");
             }
         });
 
@@ -297,13 +301,19 @@ public class ServerBleRpcConnectionFactory implements ServerRpcConnectionFactory
 
     private boolean tryNotifyChanged(BluetoothDevice device, BluetoothGattCharacteristic c, boolean indication) {
         for (int i=0; i<NOTIFY_ATTEMPTS; i++) {
-            if (server.notifyCharacteristicChanged(device, c, indication)) {
-                Logger.get().log("notifyCharacteristicChanged()");
-                return true;
+
+            try {
+                if (server.notifyCharacteristicChanged(device, c, indication)) {
+                   logger.debug("sever.notifyCharacteristicChanged() ok");
+                    return true;
+                }
+            } catch (Throwable t) {
+               logger.debug("Crashed to notify !!");
+                t.printStackTrace();
             }
 
             try {
-                Logger.get().log("failed to notifyCharacteristicChanged(), retrying");
+               logger.debug("failed to notifyCharacteristicChanged(), retrying");
                 Thread.sleep(50);
             } catch (InterruptedException e) {
             }
@@ -313,7 +323,7 @@ public class ServerBleRpcConnectionFactory implements ServerRpcConnectionFactory
     }
 
     public boolean notifyChanged(BluetoothGattCharacteristic characteristic) {
-        Logger.get().log(getClass().getSimpleName() + ".notifyChanged()");
+       logger.debug("notifyChanged()");
 
         boolean notified = true;
 
@@ -321,9 +331,9 @@ public class ServerBleRpcConnectionFactory implements ServerRpcConnectionFactory
             if (eachEntry.getValue().isSubscribed()) {
 
                 if (tryNotifyChanged(eachEntry.getKey(), characteristic, false)) {
-                    Logger.get().log(getClass().getSimpleName() + ": notified " + eachEntry.getKey());
+                   logger.debug("notified " + eachEntry.getKey());
                 } else {
-                    Logger.get().log(getClass().getSimpleName() + " Failed to notify!");
+                   logger.debug("failed to notify!");
                     notified = false;
                 }
             }

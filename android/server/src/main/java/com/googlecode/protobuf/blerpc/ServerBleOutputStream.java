@@ -1,6 +1,8 @@
 package com.googlecode.protobuf.blerpc;
 
 import android.bluetooth.BluetoothGattCharacteristic;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
@@ -19,12 +21,5 @@ public class ServerBleOutputStream extends BleOutputStream {
     @Override
     protected boolean writeCharacteristic(final BluetoothGattCharacteristic characteristic) {
         return factory.notifyChanged(characteristic);
-    }
-
-    @Override
-    public void close() throws IOException {
-        super.close();
-
-        Logger.get().log(getClass().getSimpleName() + ".close()");
     }
 }

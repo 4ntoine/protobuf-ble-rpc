@@ -1,5 +1,8 @@
 package com.googlecode.protobuf.blerpc;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -8,6 +11,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Input stream for BLE
  */
 public class BleInputStream extends InputStream {
+
+    private Logger logger = LoggerFactory.getLogger(BleInputStream.class.getSimpleName());
 
     public static final int INPUT_BUFFER_SIZE  = 10 * 1024; // 10 Kb
     public static final int READ_TIMEOUT = 5 * 60 * 1000; // 5 minutes (for debugging) !
@@ -44,10 +49,10 @@ public class BleInputStream extends InputStream {
 
     @Override
     public int read() throws IOException {
-        Logger.get().log("BleInputStream.read()");
+        logger.debug("read()");
 
         if (closed) {
-            Logger.get().log("BleInputStream: end of stream");
+            logger.debug("end of stream");
             return -1; // end of stream
         }
 
@@ -68,7 +73,7 @@ public class BleInputStream extends InputStream {
         // check need reset indices
         checkReset();
 
-        Logger.get().log("BleInputStream.read() finished");
+        logger.debug("read() finished");
 
         return readByte;
     }
@@ -85,7 +90,7 @@ public class BleInputStream extends InputStream {
 
     @Override
     public int read(byte[] output, int offset, int length) throws IOException {
-        Logger.get().log("BleInputStream.read() requested length=" + length);
+        logger.debug("read() requested length=" + length);
 
         if (closed)
             return -1; // end of stream
@@ -117,7 +122,7 @@ public class BleInputStream extends InputStream {
      * @param value
      */
     public synchronized void doRead(byte[] value) {
-        Logger.get().log("BleInputStream.doRead() length=" + value.length);
+        logger.debug("doRead() length=" + value.length);
 
         // append to the buffer
         System.arraycopy(value, 0, buffer, lastIndex.get() + 1, value.length);
@@ -128,7 +133,7 @@ public class BleInputStream extends InputStream {
 
     @Override
     public void close() throws IOException {
-        Logger.get().log("BleInputStream.close()");
+        logger.debug("close()");
 
         super.close();
 

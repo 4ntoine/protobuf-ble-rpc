@@ -2,6 +2,8 @@ package com.googlecode.protobuf.blerpc;
 
 import com.google.protobuf.MessageLite;
 import com.googlecode.protobuf.socketrpc.RpcConnectionFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
@@ -9,6 +11,8 @@ import java.io.IOException;
  * Connection for BLE (peripheral role)
  */
 public class ServerBleConnection implements RpcConnectionFactory.Connection {
+
+    protected static Logger logger = LoggerFactory.getLogger(ServerBleConnection.class.getSimpleName());
 
     private BleInputStream in;
     private ServerBleOutputStream out;
@@ -39,7 +43,7 @@ public class ServerBleConnection implements RpcConnectionFactory.Connection {
 
     @Override
     public void sendProtoMessage(MessageLite message) throws IOException {
-        Logger.get().log(" ------ sendProtoMessage() started");
+        logger.debug(" ------ sendProtoMessage() started");
 
         // Write message
         if (delimited) {
@@ -50,12 +54,12 @@ public class ServerBleConnection implements RpcConnectionFactory.Connection {
             out.flush();
         }
 
-        Logger.get().log(" ------ sendProtoMessage() finished");
+        logger.debug(" ------ sendProtoMessage() finished");
     }
 
     @Override
     public void receiveProtoMessage(MessageLite.Builder messageBuilder) throws IOException {
-        Logger.get().log(" ------ receiveProtoMessage() started");
+        logger.debug(" ------ receiveProtoMessage() started");
 
         // Read message
         if (delimited) {
@@ -64,7 +68,7 @@ public class ServerBleConnection implements RpcConnectionFactory.Connection {
             messageBuilder.mergeFrom(in);
         }
 
-        Logger.get().log(" ------ receiveProtoMessage() finished");
+        logger.debug(" ------ receiveProtoMessage() finished");
     }
 
     private boolean closed = false;
