@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+	<groupId>com.googlecode.protobuf.blerpc</groupId>
+    <artifactId>parent-example</artifactId>
+    <version>1.0</version>
+    <packaging>pom</packaging>
+	<name>parent example</name>
+    
+    <developers>
+        <developer>
+            <name>Anton Smirnov</name>
+            <email>dev@antonsmirnov.name</email>
+        </developer>
+    </developers>
+	
+	<properties>
+        <!-- android sdk level -->
+        <sdkVersion>21</sdkVersion>
+
+		<!-- android plugin name -->
+		<androidPluginName>android-maven-plugin</androidPluginName>
+		
+        <!-- android plugin version -->
+        <androidPluginVersion>3.9.0-rc.3</androidPluginVersion>
+
+        <!-- version -->
+        <appVersion>1.1</appVersion>
+
+        <!-- lib version -->
+        <libVersion>1.1</libVersion>
+
+    </properties>
+	
+	<modules>
+		<module>client</module>
+		<module>server</module>
+	</modules>
+    
+</project>

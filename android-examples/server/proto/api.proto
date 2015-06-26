@@ -1,0 +1,25 @@
+syntax = "proto2";
+
+option java_generic_services = true;
+option java_package = "com.googlecode.protobuf.blerpc.api";
+
+message WifiNetwork {
+	required string SSID = 1;
+	optional string BSSID = 2;
+	optional string capabilities = 3;
+	optional int32 level = 4;
+	optional int32 frequency = 5;
+	optional int64 timestamp = 6;
+}
+
+message WifiRequest {
+	optional int32 timeout = 1;
+}
+
+message WifiResponse {
+	repeated WifiNetwork networks = 1;
+}
+
+service WifiService {
+	rpc getWifiNetworks (WifiRequest) returns (WifiResponse);
+}

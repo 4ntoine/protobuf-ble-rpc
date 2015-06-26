@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project
+    xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.googlecode.protobuf.blerpc</groupId>
+        <artifactId>parent-example</artifactId>
+        <version>1.0</version>
+    </parent>
+
+    <groupId>com.googlecode.protobuf.blerpc</groupId>
+    <artifactId>client-example</artifactId>
+    <version>${appVersion}</version>
+    <packaging>apk</packaging>
+    <name>client example</name>
+
+    <dependencies>
+        <!-- android -->
+        <dependency>
+            <groupId>com.google.android</groupId>
+            <artifactId>android</artifactId>
+            <version>5.0</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- android server -->
+        <dependency>
+            <groupId>com.googlecode.protobuf.blerpc</groupId>
+            <artifactId>client</artifactId>
+            <version>${libVersion}</version>
+        </dependency>
+
+    </dependencies>
+
+    <build>
+        <sourceDirectory>src</sourceDirectory>
+        <plugins>
+
+            <!-- android -->
+            <plugin>
+                <groupId>com.jayway.maven.plugins.android.generation2</groupId>
+                <artifactId>${androidPluginName}</artifactId>
+                <version>${androidPluginVersion}</version>
+                <!--
+                <executions>
+                    <execution>
+                        <id>alignApk</id>
+                        <phase>install</phase>
+                        <goals>
+                          <goal>zipalign</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                -->
+                <configuration>
+                    <source>${project.basedir}/src</source>
+                    <resourceDirectory>${project.basedir}/res</resourceDirectory>
+                    <sdk>
+                        <platform>${sdkVersion}</platform>
+                    </sdk>
+                    <!--
+                    <zipalign>
+                	    <verbose>true</verbose>
+                	    <inputApk>${project.build.directory}/${project.build.finalName}.apk</inputApk>
+                	    <outputApk>${project.build.directory}/CppDroid-aligned.apk</outputApk>
+                        <skip>false</skip>
+                	</zipalign>
+                    -->
+                    <attachSources>true</attachSources>
+
+                    <sign>
+                        <debug>false</debug>
+                    </sign>
+
+                    <!--<release>true</release>-->
+
+                </configuration>
+                <extensions>true</extensions>
+            </plugin>
+
+        </plugins>
+    </build>
+
+</project>
