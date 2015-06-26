@@ -77,5 +77,18 @@ Built is made using Maven.
 
 3. Android jar: make sure you have `com.google.android:android:5.0` installed in local maven repo. Use maven install plugin to install android.jar from Android SDK as maven artifact.
 
-Now compile protobuf-ble-rpc:
+Now compile protobuf-ble-rpc (run in 'android' folder):
 > mvn clean install
+
+## Examples
+
+Examples can be found in 'android-examples' folder.
+So you will be able to get wifi networks list available on server android device.
+
+See '/proto/api.proto' file and generated 'com.googlecode.protobuf.blerpc.api' package.
+
+Make sure 'android' module compiled before compiling 'android-examples'.
+Compile examples with maven (run in 'android-examples' folder):
+> mvn clean install
+
+Run 'server' on server device (Android 21 required) and `client` on client device (Android 18 required).
