@@ -7,6 +7,7 @@ import com.google.protobuf.MessageLite;
 import com.googlecode.protobuf.socketrpc.RpcConnectionFactory;
 
 import java.io.*;
+import java.util.Arrays;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -40,6 +41,7 @@ public class BleConnection implements RpcConnectionFactory.Connection {
     }
 
     private AtomicBoolean subscribed = new AtomicBoolean(false);
+    private AtomicBoolean unsubscribed = new AtomicBoolean(false);
     private BluetoothGattDescriptor readDescriptor;
 
     public boolean subscribe() {
@@ -59,6 +61,7 @@ public class BleConnection implements RpcConnectionFactory.Connection {
         readDescriptor = readChar.getDescriptor(UUID.fromString(SUBSCRIBE_DESCRIPTOR_UUID));
         readDescriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE); // local value
 
+        subscribed.set(false);
         // making few attempts to subscribe
         for (int i=0; i<3; i++) {
             if (connection.writeDescriptor(readDescriptor)) // post value to remote
@@ -83,8 +86,13 @@ public class BleConnection implements RpcConnectionFactory.Connection {
     }
 
     public void notifyDescriptorWritten(BluetoothGattDescriptor descriptor) {
-        if (descriptor == readDescriptor)
-            subscribed.set(true);
+        if (descriptor == readDescriptor) {
+            if (Arrays.equals(descriptor.getValue(), BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE) ||
+                Arrays.equals(descriptor.getValue(), BluetoothGattDescriptor.ENABLE_INDICATION_VALUE))
+                subscribed.set(true);
+            else if (Arrays.equals(descriptor.getValue(), BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE))
+                unsubscribed.set(true);
+        }
     }
 
     @Override
@@ -116,8 +124,36 @@ public class BleConnection implements RpcConnectionFactory.Connection {
         // unsubscribe
         connection.setCharacteristicNotification(readChar, false);
 
+        // unsubscribe manually
+        readDescriptor = readChar.getDescriptor(UUID.fromString(SUBSCRIBE_DESCRIPTOR_UUID));
+        readDescriptor.setValue(BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE); // local value
+
+        // making few attempts to unsubscribe
+        unsubscribed.set(false);
+        for (int i=0; i<3; i++) {
+            if (connection.writeDescriptor(readDescriptor)) // post value to remote
+                break;
+
+            try {
+                Thread.sleep(50);
+            } catch (InterruptedException e) {
+            }
+        }
+
+        // wait for unsubscribed to read characteristic
+        while (!unsubscribed.get()) {
+            try {
+                Thread.sleep(10);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
         in.close();
         out.close();
+
+        // close BLE connection
+        connection.disconnect();
 
         closed = true;
     }
