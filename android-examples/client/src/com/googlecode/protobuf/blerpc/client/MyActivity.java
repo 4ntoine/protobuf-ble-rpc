@@ -28,22 +28,20 @@ public class MyActivity extends Activity {
         buttonView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (!busy)
-                    requestOverBle();
+                requestOverBle();
             }
         });
     }
 
     private Api.WifiResponse response;
 
-    private boolean busy;
-
     private void requestOverBle() {
+        logView.setText("");
+        buttonView.setEnabled(false);
+
         new Thread(new Runnable() {
             @Override
             public void run() {
-                busy = true;
-
                 // BLE connected
                 RpcConnectionFactory connectionFactory = new BleRpcConnectionFactory(
                         MyActivity.this,
@@ -62,13 +60,13 @@ public class MyActivity extends Activity {
                 } catch (ServiceException e) {
                     e.printStackTrace();
                     return;
-                } finally {
-                    busy = false;
                 }
 
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
+                        buttonView.setEnabled(true);
+
                         for (Api.WifiNetwork eachNetwork : response.getNetworksList()) {
                             logView.getText().append("-----------\n");
                             logView.getText().append(eachNetwork.toString());
