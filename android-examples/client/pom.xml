@@ -44,39 +44,18 @@
                 <groupId>com.jayway.maven.plugins.android.generation2</groupId>
                 <artifactId>${androidPluginName}</artifactId>
                 <version>${androidPluginVersion}</version>
-                <!--
                 <executions>
                     <execution>
                         <id>alignApk</id>
                         <phase>install</phase>
-                        <goals>
-                          <goal>zipalign</goal>
-                        </goals>
                     </execution>
                 </executions>
-                -->
                 <configuration>
                     <source>${project.basedir}/src</source>
                     <resourceDirectory>${project.basedir}/res</resourceDirectory>
                     <sdk>
                         <platform>${sdkVersion}</platform>
                     </sdk>
-                    <!--
-                    <zipalign>
-                	    <verbose>true</verbose>
-                	    <inputApk>${project.build.directory}/${project.build.finalName}.apk</inputApk>
-                	    <outputApk>${project.build.directory}/CppDroid-aligned.apk</outputApk>
-                        <skip>false</skip>
-                	</zipalign>
-                    -->
-                    <attachSources>true</attachSources>
-
-                    <sign>
-                        <debug>false</debug>
-                    </sign>
-
-                    <!--<release>true</release>-->
-
                 </configuration>
                 <extensions>true</extensions>
             </plugin>
