@@ -304,7 +304,7 @@ public class ServerBleRpcConnectionFactory implements ServerRpcConnectionFactory
 
             try {
                 if (server.notifyCharacteristicChanged(device, c, indication)) {
-                   logger.debug("sever.notifyCharacteristicChanged() ok");
+                   logger.debug("server.notifyCharacteristicChanged() ok");
                     return true;
                 }
             } catch (Throwable t) {
