@@ -24,6 +24,11 @@ public class BleRpcConnectionFactory extends BluetoothGattCallback implements Rp
 
     private UUID serviceUUID;
     private BluetoothDevice bluetoothDevice;
+
+    public void setBluetoothDevice(BluetoothDevice bluetoothDevice) {
+        this.bluetoothDevice = bluetoothDevice;
+    }
+
     private UUID readCharUUID;
     private UUID writeCharUUID;
 
@@ -50,6 +55,7 @@ public class BleRpcConnectionFactory extends BluetoothGattCallback implements Rp
                                    String writeCharUUID,
                                    boolean delimited) {
         this.context = context;
+        this.discoveryHandler = new Handler(context.getMainLooper());
         adapter = BluetoothAdapter.getDefaultAdapter();
 
         this.serviceUUID = UUID.fromString(serviceUUID);
@@ -158,7 +164,7 @@ public class BleRpcConnectionFactory extends BluetoothGattCallback implements Rp
         public void onLeScan(BluetoothDevice device, int rssi, byte[] scanRecord) {
             if (serverDiscovered    // already discovered
                     ||
-                (bluetoothDevice != null && bluetoothDevice.equals(device)))   // specific device required and it's not that device
+                (bluetoothDevice != null && !bluetoothDevice.equals(device)))   // specific device required and it's not that device
                 return;
 
             serverDiscovered = true;
@@ -181,11 +187,15 @@ public class BleRpcConnectionFactory extends BluetoothGattCallback implements Rp
     }
 
     private DiscoveryListener discoveryListener;
-    private Handler discoveryHandler = new Handler();
+    private Handler discoveryHandler;
 
     public void discover(DiscoveryListener discoveryListener) {
         this.discoveryListener = discoveryListener;
         this.serverDiscovered = false;
+
+        // turn BLE on
+        if (!adapter.isEnabled())
+            adapter.enable();
 
         // started
         this.discoveryListener.onStarted();
@@ -210,6 +220,10 @@ public class BleRpcConnectionFactory extends BluetoothGattCallback implements Rp
         if (connection == null) {
             connectionThrowable = null;
             connected.set(false);
+
+            // turn BLE on
+            if (!adapter.isEnabled())
+                adapter.enable();
 
             // start connection
             long discoveryStarted = System.currentTimeMillis();
