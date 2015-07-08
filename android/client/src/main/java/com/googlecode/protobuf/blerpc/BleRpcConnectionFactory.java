@@ -2,9 +2,11 @@ package com.googlecode.protobuf.blerpc;
 
 import android.bluetooth.*;
 import android.content.Context;
+import android.os.Handler;
 import com.googlecode.protobuf.socketrpc.RpcConnectionFactory;
 
 import java.io.IOException;
+import java.text.MessageFormat;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -13,29 +15,52 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class BleRpcConnectionFactory extends BluetoothGattCallback implements RpcConnectionFactory {
 
+    public static final int DISCOVERY_TIMEOUT  = 10 * 1000; // 10 seconds
+
     private Context context;
     private BluetoothAdapter adapter;
     private BluetoothGatt gattConnection;
     private boolean delimited;
 
     private UUID serviceUUID;
+    private BluetoothDevice bluetoothDevice;
     private UUID readCharUUID;
     private UUID writeCharUUID;
 
     private BluetoothGattCharacteristic readChar;
     private BluetoothGattCharacteristic writeChar;
 
+    private int discoveryTimeout = DISCOVERY_TIMEOUT;
+
+    public int getDiscoveryTimeout() {
+        return discoveryTimeout;
+    }
+
+    public void setDiscoveryTimeout(int discoveryTimeout) {
+        this.discoveryTimeout = discoveryTimeout;
+    }
+
     private volatile boolean serverDiscovered = false;
     private AtomicBoolean connected = new AtomicBoolean(false);
 
-    public BleRpcConnectionFactory(Context context, String serviceUUID, String readCharUUID, String writeCharUUID, boolean delimited) {
+    public BleRpcConnectionFactory(Context context,
+                                   String serviceUUID,
+                                   BluetoothDevice bluetoothDevice,
+                                   String readCharUUID,
+                                   String writeCharUUID,
+                                   boolean delimited) {
         this.context = context;
         adapter = BluetoothAdapter.getDefaultAdapter();
 
         this.serviceUUID = UUID.fromString(serviceUUID);
+        this.bluetoothDevice = bluetoothDevice;
         this.readCharUUID = UUID.fromString(readCharUUID);
         this.writeCharUUID = UUID.fromString(writeCharUUID);
         this.delimited = delimited;
+    }
+
+    public BleRpcConnectionFactory(Context context, String serviceUUID, String readCharUUID, String writeCharUUID, boolean delimited) {
+        this(context, serviceUUID, null, readCharUUID, writeCharUUID, delimited);
     }
 
     public void _onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
@@ -128,14 +153,16 @@ public class BleRpcConnectionFactory extends BluetoothGattCallback implements Rp
         connection.onCharacteristicChanged(characteristic);
     }
 
-    private BluetoothAdapter.LeScanCallback scanCallback = new BluetoothAdapter.LeScanCallback() {
+    private BluetoothAdapter.LeScanCallback connectScanCallback = new BluetoothAdapter.LeScanCallback() {
         @Override
         public void onLeScan(BluetoothDevice device, int rssi, byte[] scanRecord) {
-            if (serverDiscovered)
+            if (serverDiscovered    // already discovered
+                    ||
+                (bluetoothDevice != null && bluetoothDevice.equals(device)))   // specific device required and it's not that device
                 return;
 
             serverDiscovered = true;
-            adapter.stopLeScan(scanCallback);
+            adapter.stopLeScan(connectScanCallback);
 
             gattConnection = device.connectGatt(context, false, BleRpcConnectionFactory.this);
             gattConnection.connect();
@@ -145,21 +172,63 @@ public class BleRpcConnectionFactory extends BluetoothGattCallback implements Rp
     private BleConnection connection;
     private Throwable connectionThrowable;
 
+    /**
+     * Discovery listener
+     */
+    public interface DiscoveryListener extends BluetoothAdapter.LeScanCallback {
+        void onStarted();
+        void onFinished();
+    }
+
+    private DiscoveryListener discoveryListener;
+    private Handler discoveryHandler = new Handler();
+
+    public void discover(DiscoveryListener discoveryListener) {
+        this.discoveryListener = discoveryListener;
+        this.serverDiscovered = false;
+
+        // started
+        this.discoveryListener.onStarted();
+        adapter.startLeScan(new UUID[]{ serviceUUID }, this.discoveryListener);
+
+        // schedule discovery timeout
+        discoveryHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                adapter.stopLeScan(BleRpcConnectionFactory.this.discoveryListener);
+
+                // finished
+                BleRpcConnectionFactory.this.discoveryListener.onFinished();
+            }
+        }, discoveryTimeout);
+    }
+
     @Override
     public Connection createConnection() throws IOException {
+        this.serverDiscovered = false;
+
         if (connection == null) {
             connectionThrowable = null;
             connected.set(false);
 
             // start connection
-            adapter.startLeScan(new UUID[]{ serviceUUID }, scanCallback);
+            long discoveryStarted = System.currentTimeMillis();
+
+            adapter.startLeScan(new UUID[]{ serviceUUID }, connectScanCallback);
 
             // wait for connected
-            while (!connected.get())
+            while (!connected.get()) {
                 try {
                     Thread.sleep(10);
                 } catch (InterruptedException e) {
                 }
+
+                // check timeout
+                if ((System.currentTimeMillis() - discoveryStarted) > discoveryTimeout) {
+                    adapter.stopLeScan(connectScanCallback);
+                    throw new DiscoveryTimeoutException(bluetoothDevice, discoveryTimeout);
+                }
+            }
 
             if (connectionThrowable != null) {
                 connected.set(false);
@@ -168,5 +237,32 @@ public class BleRpcConnectionFactory extends BluetoothGattCallback implements Rp
         }
 
         return connection;
+    }
+
+    /**
+     * Throws when not discovered within Timeout
+     */
+    public static class DiscoveryTimeoutException extends IOException {
+
+        private BluetoothDevice bluetoothDevice;
+        private int timeOut;
+
+        public BluetoothDevice getBluetoothDevice() {
+            return bluetoothDevice;
+        }
+
+        public int getTimeOut() {
+            return timeOut;
+        }
+
+        public DiscoveryTimeoutException(BluetoothDevice bluetoothDevice, int timeOut) {
+            this.bluetoothDevice = bluetoothDevice;
+            this.timeOut = timeOut;
+        }
+
+        @Override
+        public String getMessage() {
+            return MessageFormat.format("Discovery timeout exception: device={0}, timeout={1} ms", bluetoothDevice, timeOut);
+        }
     }
 }

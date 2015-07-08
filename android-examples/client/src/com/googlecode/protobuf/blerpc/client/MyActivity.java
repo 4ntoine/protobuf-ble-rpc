@@ -1,6 +1,7 @@
 package com.googlecode.protobuf.blerpc.client;
 
 import android.app.Activity;
+import android.bluetooth.BluetoothDevice;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -14,42 +15,104 @@ import com.googlecode.protobuf.socketrpc.RpcChannels;
 import com.googlecode.protobuf.socketrpc.RpcConnectionFactory;
 import com.googlecode.protobuf.socketrpc.SocketRpcController;
 
-public class MyActivity extends Activity {
+import java.text.MessageFormat;
+import java.util.HashSet;
+import java.util.Set;
 
-    private Button buttonView;
+public class MyActivity extends Activity implements BleRpcConnectionFactory.DiscoveryListener {
+
+    private Button buttonDiscover;
+    private Button buttonConnect;
+    private Button buttonClear;
     private EditText logView;
+
+    private Set<BluetoothDevice> foundDevices = new HashSet<BluetoothDevice>();
+
+    @Override
+    public void onFinished() {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                logView.getText().append("\nDiscovery finished");
+                foundDevices.clear();
+            }
+        });
+    }
+
+    @Override
+    public void onStarted() {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                logView.getText().append("\nDiscovery started");
+                foundDevices.clear();
+            }
+        });
+    }
+
+    @Override
+    public void onLeScan(final BluetoothDevice device, int rssi, byte[] scanRecord) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                // for some reason the same device can be found few times
+                if (!foundDevices.contains(device)) {
+                    String message = MessageFormat.format("\nBluetooth device found: {0} ({1})", device.getName(), device.getAddress());
+                    logView.getText().append(message);
+                    foundDevices.add(device);
+                }
+            }
+        });
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
         logView = (EditText) findViewById(R.id.log);
-        buttonView = (Button) findViewById(R.id.button);
-        buttonView.setOnClickListener(new View.OnClickListener() {
+        buttonDiscover = (Button) findViewById(R.id.button_discover);
+        buttonDiscover.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View view) {
-                requestOverBle();
+            public void onClick(View v) {
+                connectionFactory.discover(MyActivity.this);
             }
         });
+
+        buttonConnect = (Button) findViewById(R.id.button_connect);
+        buttonConnect.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                connect();
+            }
+        });
+
+        buttonClear = (Button) findViewById(R.id.button_clear);
+        buttonClear.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                logView.getText().clear();
+            }
+        });
+
+        connectionFactory = new BleRpcConnectionFactory(
+                MyActivity.this,
+                "6855f2ce-8dc6-4228-8bec-531167e00111",
+                "09de1235-6594-4a2b-8d88-ad5eb8c00222",
+                "c3a29c57-7a4b-492c-b7c4-7d807f000333",
+                true
+        );
     }
 
     private Api.WifiResponse response;
+    private BleRpcConnectionFactory connectionFactory;
 
-    private void requestOverBle() {
+    private void connect() {
         logView.setText("");
-        buttonView.setEnabled(false);
+        buttonConnect.setEnabled(false);
 
         new Thread(new Runnable() {
             @Override
             public void run() {
-                // BLE connected
-                RpcConnectionFactory connectionFactory = new BleRpcConnectionFactory(
-                        MyActivity.this,
-                        "6855f2ce-8dc6-4228-8bec-531167e00111",
-                        "09de1235-6594-4a2b-8d88-ad5eb8c00222",
-                        "c3a29c57-7a4b-492c-b7c4-7d807f000333",
-                        true
-                );
                 BlockingRpcChannel channel = RpcChannels.newBlockingRpcChannel(connectionFactory);
                 Api.WifiService.BlockingInterface service = Api.WifiService.newBlockingStub(channel);
                 RpcController controller = new SocketRpcController();
@@ -57,7 +120,15 @@ public class MyActivity extends Activity {
                 Api.WifiRequest request = Api.WifiRequest.newBuilder().build();
                 try {
                     response = service.getWifiNetworks(controller, request);
-                } catch (ServiceException e) {
+                } catch (final ServiceException e) {
+
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            logView.getText().append("\nError: " + e.getMessage());
+                            buttonConnect.setEnabled(true);
+                        }
+                    });
                     e.printStackTrace();
                     return;
                 }
@@ -65,7 +136,7 @@ public class MyActivity extends Activity {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        buttonView.setEnabled(true);
+                        buttonConnect.setEnabled(true);
 
                         for (Api.WifiNetwork eachNetwork : response.getNetworksList()) {
                             logView.getText().append("-----------\n");

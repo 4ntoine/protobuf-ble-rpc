@@ -2,3 +2,5 @@
 **/.idea
 **/.idea/*
 **/*.iml
+**/gen/**
+**/.DS_Store

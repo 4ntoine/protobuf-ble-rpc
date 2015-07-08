@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">BleClientExample</string>
-    <string name="start">Start</string>
+    <string name="discover">Discover</string>
+    <string name="connect">Connect</string>
+    <string name="clear">Clear</string>
 </resources>
