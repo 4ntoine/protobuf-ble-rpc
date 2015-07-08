@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.wifi.ScanResult;
+import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiManager;
 import android.os.Handler;
 import android.widget.Toast;
@@ -123,4 +124,28 @@ public class WifiServiceImpl extends Api.WifiService {
         logger.debug("getWifiNetworks() finished");
     }
 
+    @Override
+    public void connectWifiNetwork(RpcController controller, Api.WifiConnectRequest request, RpcCallback<Api.WifiConnectResponse> done) {
+        WifiConfiguration wifiConfig = new WifiConfiguration();
+        wifiConfig.SSID = String.format("\"%s\"", request.getNetwork().getSSID());
+        wifiConfig.preSharedKey = String.format("\"%s\"", request.getPassword());
+
+        logger.debug("Trying to connect to ssid=%s with password=%s)", wifiConfig.SSID, request.getPassword());
+
+        // remember id
+        int netId = wifiManager.addNetwork(wifiConfig);
+        wifiManager.disconnect();
+        wifiManager.enableNetwork(netId, true);
+        boolean connected = wifiManager.reconnect();
+
+        logger.debug(connected ? "Successfully connected" : "Failed to connect !");
+
+        // response
+        Api.WifiConnectResponse response = Api.WifiConnectResponse.newBuilder()
+                .setConnected(connected)
+                .build();
+
+        // callback
+        done.run(response);
+    }
 }

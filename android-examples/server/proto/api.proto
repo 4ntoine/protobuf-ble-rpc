@@ -20,6 +20,16 @@ message WifiResponse {
 	repeated WifiNetwork networks = 1;
 }
 
+message WifiConnectRequest {
+	required WifiNetwork network = 1;
+	required string password = 2;
+}
+
+message WifiConnectResponse {
+	required bool connected = 1;
+}
+
 service WifiService {
 	rpc getWifiNetworks (WifiRequest) returns (WifiResponse);
+	rpc connectWifiNetwork (WifiConnectRequest) returns (WifiConnectResponse);
 }

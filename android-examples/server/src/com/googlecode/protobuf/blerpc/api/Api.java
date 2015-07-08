@@ -2125,6 +2125,1100 @@ public final class Api {
     // @@protoc_insertion_point(class_scope:WifiResponse)
   }
 
+  public interface WifiConnectRequestOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:WifiConnectRequest)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>required .WifiNetwork network = 1;</code>
+     */
+    boolean hasNetwork();
+    /**
+     * <code>required .WifiNetwork network = 1;</code>
+     */
+    com.googlecode.protobuf.blerpc.api.Api.WifiNetwork getNetwork();
+    /**
+     * <code>required .WifiNetwork network = 1;</code>
+     */
+    com.googlecode.protobuf.blerpc.api.Api.WifiNetworkOrBuilder getNetworkOrBuilder();
+
+    /**
+     * <code>required string password = 2;</code>
+     */
+    boolean hasPassword();
+    /**
+     * <code>required string password = 2;</code>
+     */
+    java.lang.String getPassword();
+    /**
+     * <code>required string password = 2;</code>
+     */
+    com.google.protobuf.ByteString
+        getPasswordBytes();
+  }
+  /**
+   * Protobuf type {@code WifiConnectRequest}
+   */
+  public static final class WifiConnectRequest extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:WifiConnectRequest)
+      WifiConnectRequestOrBuilder {
+    // Use WifiConnectRequest.newBuilder() to construct.
+    private WifiConnectRequest(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+      this.unknownFields = builder.getUnknownFields();
+    }
+    private WifiConnectRequest(boolean noInit) { this.unknownFields = com.google.protobuf.UnknownFieldSet.getDefaultInstance(); }
+
+    private static final WifiConnectRequest defaultInstance;
+    public static WifiConnectRequest getDefaultInstance() {
+      return defaultInstance;
+    }
+
+    public WifiConnectRequest getDefaultInstanceForType() {
+      return defaultInstance;
+    }
+
+    private final com.google.protobuf.UnknownFieldSet unknownFields;
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+        getUnknownFields() {
+      return this.unknownFields;
+    }
+    private WifiConnectRequest(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      initFields();
+      int mutable_bitField0_ = 0;
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!parseUnknownField(input, unknownFields,
+                                     extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+            case 10: {
+              com.googlecode.protobuf.blerpc.api.Api.WifiNetwork.Builder subBuilder = null;
+              if (((bitField0_ & 0x00000001) == 0x00000001)) {
+                subBuilder = network_.toBuilder();
+              }
+              network_ = input.readMessage(com.googlecode.protobuf.blerpc.api.Api.WifiNetwork.PARSER, extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom(network_);
+                network_ = subBuilder.buildPartial();
+              }
+              bitField0_ |= 0x00000001;
+              break;
+            }
+            case 18: {
+              com.google.protobuf.ByteString bs = input.readBytes();
+              bitField0_ |= 0x00000002;
+              password_ = bs;
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e.getMessage()).setUnfinishedMessage(this);
+      } finally {
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return com.googlecode.protobuf.blerpc.api.Api.internal_static_WifiConnectRequest_descriptor;
+    }
+
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return com.googlecode.protobuf.blerpc.api.Api.internal_static_WifiConnectRequest_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              com.googlecode.protobuf.blerpc.api.Api.WifiConnectRequest.class, com.googlecode.protobuf.blerpc.api.Api.WifiConnectRequest.Builder.class);
+    }
+
+    public static com.google.protobuf.Parser<WifiConnectRequest> PARSER =
+        new com.google.protobuf.AbstractParser<WifiConnectRequest>() {
+      public WifiConnectRequest parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new WifiConnectRequest(input, extensionRegistry);
+      }
+    };
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<WifiConnectRequest> getParserForType() {
+      return PARSER;
+    }
+
+    private int bitField0_;
+    public static final int NETWORK_FIELD_NUMBER = 1;
+    private com.googlecode.protobuf.blerpc.api.Api.WifiNetwork network_;
+    /**
+     * <code>required .WifiNetwork network = 1;</code>
+     */
+    public boolean hasNetwork() {
+      return ((bitField0_ & 0x00000001) == 0x00000001);
+    }
+    /**
+     * <code>required .WifiNetwork network = 1;</code>
+     */
+    public com.googlecode.protobuf.blerpc.api.Api.WifiNetwork getNetwork() {
+      return network_;
+    }
+    /**
+     * <code>required .WifiNetwork network = 1;</code>
+     */
+    public com.googlecode.protobuf.blerpc.api.Api.WifiNetworkOrBuilder getNetworkOrBuilder() {
+      return network_;
+    }
+
+    public static final int PASSWORD_FIELD_NUMBER = 2;
+    private java.lang.Object password_;
+    /**
+     * <code>required string password = 2;</code>
+     */
+    public boolean hasPassword() {
+      return ((bitField0_ & 0x00000002) == 0x00000002);
+    }
+    /**
+     * <code>required string password = 2;</code>
+     */
+    public java.lang.String getPassword() {
+      java.lang.Object ref = password_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
+          password_ = s;
+        }
+        return s;
+      }
+    }
+    /**
+     * <code>required string password = 2;</code>
+     */
+    public com.google.protobuf.ByteString
+        getPasswordBytes() {
+      java.lang.Object ref = password_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        password_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    private void initFields() {
+      network_ = com.googlecode.protobuf.blerpc.api.Api.WifiNetwork.getDefaultInstance();
+      password_ = "";
+    }
+    private byte memoizedIsInitialized = -1;
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      if (!hasNetwork()) {
+        memoizedIsInitialized = 0;
+        return false;
+      }
+      if (!hasPassword()) {
+        memoizedIsInitialized = 0;
+        return false;
+      }
+      if (!getNetwork().isInitialized()) {
+        memoizedIsInitialized = 0;
+        return false;
+      }
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      getSerializedSize();
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        output.writeMessage(1, network_);
+      }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        output.writeBytes(2, getPasswordBytes());
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    private int memoizedSerializedSize = -1;
+    public int getSerializedSize() {
+      int size = memoizedSerializedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(1, network_);
+      }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBytesSize(2, getPasswordBytes());
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSerializedSize = size;
+      return size;
+    }
+
+    private static final long serialVersionUID = 0L;
+    @java.lang.Override
+    protected java.lang.Object writeReplace()
+        throws java.io.ObjectStreamException {
+      return super.writeReplace();
+    }
+
+    public static com.googlecode.protobuf.blerpc.api.Api.WifiConnectRequest parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static com.googlecode.protobuf.blerpc.api.Api.WifiConnectRequest parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static com.googlecode.protobuf.blerpc.api.Api.WifiConnectRequest parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static com.googlecode.protobuf.blerpc.api.Api.WifiConnectRequest parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static com.googlecode.protobuf.blerpc.api.Api.WifiConnectRequest parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static com.googlecode.protobuf.blerpc.api.Api.WifiConnectRequest parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+    public static com.googlecode.protobuf.blerpc.api.Api.WifiConnectRequest parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input);
+    }
+    public static com.googlecode.protobuf.blerpc.api.Api.WifiConnectRequest parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input, extensionRegistry);
+    }
+    public static com.googlecode.protobuf.blerpc.api.Api.WifiConnectRequest parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static com.googlecode.protobuf.blerpc.api.Api.WifiConnectRequest parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+
+    public static Builder newBuilder() { return Builder.create(); }
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder(com.googlecode.protobuf.blerpc.api.Api.WifiConnectRequest prototype) {
+      return newBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() { return newBuilder(this); }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code WifiConnectRequest}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:WifiConnectRequest)
+        com.googlecode.protobuf.blerpc.api.Api.WifiConnectRequestOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return com.googlecode.protobuf.blerpc.api.Api.internal_static_WifiConnectRequest_descriptor;
+      }
+
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return com.googlecode.protobuf.blerpc.api.Api.internal_static_WifiConnectRequest_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                com.googlecode.protobuf.blerpc.api.Api.WifiConnectRequest.class, com.googlecode.protobuf.blerpc.api.Api.WifiConnectRequest.Builder.class);
+      }
+
+      // Construct using com.googlecode.protobuf.blerpc.api.Api.WifiConnectRequest.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
+          getNetworkFieldBuilder();
+        }
+      }
+      private static Builder create() {
+        return new Builder();
+      }
+
+      public Builder clear() {
+        super.clear();
+        if (networkBuilder_ == null) {
+          network_ = com.googlecode.protobuf.blerpc.api.Api.WifiNetwork.getDefaultInstance();
+        } else {
+          networkBuilder_.clear();
+        }
+        bitField0_ = (bitField0_ & ~0x00000001);
+        password_ = "";
+        bitField0_ = (bitField0_ & ~0x00000002);
+        return this;
+      }
+
+      public Builder clone() {
+        return create().mergeFrom(buildPartial());
+      }
+
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return com.googlecode.protobuf.blerpc.api.Api.internal_static_WifiConnectRequest_descriptor;
+      }
+
+      public com.googlecode.protobuf.blerpc.api.Api.WifiConnectRequest getDefaultInstanceForType() {
+        return com.googlecode.protobuf.blerpc.api.Api.WifiConnectRequest.getDefaultInstance();
+      }
+
+      public com.googlecode.protobuf.blerpc.api.Api.WifiConnectRequest build() {
+        com.googlecode.protobuf.blerpc.api.Api.WifiConnectRequest result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      public com.googlecode.protobuf.blerpc.api.Api.WifiConnectRequest buildPartial() {
+        com.googlecode.protobuf.blerpc.api.Api.WifiConnectRequest result = new com.googlecode.protobuf.blerpc.api.Api.WifiConnectRequest(this);
+        int from_bitField0_ = bitField0_;
+        int to_bitField0_ = 0;
+        if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+          to_bitField0_ |= 0x00000001;
+        }
+        if (networkBuilder_ == null) {
+          result.network_ = network_;
+        } else {
+          result.network_ = networkBuilder_.build();
+        }
+        if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
+          to_bitField0_ |= 0x00000002;
+        }
+        result.password_ = password_;
+        result.bitField0_ = to_bitField0_;
+        onBuilt();
+        return result;
+      }
+
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof com.googlecode.protobuf.blerpc.api.Api.WifiConnectRequest) {
+          return mergeFrom((com.googlecode.protobuf.blerpc.api.Api.WifiConnectRequest)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(com.googlecode.protobuf.blerpc.api.Api.WifiConnectRequest other) {
+        if (other == com.googlecode.protobuf.blerpc.api.Api.WifiConnectRequest.getDefaultInstance()) return this;
+        if (other.hasNetwork()) {
+          mergeNetwork(other.getNetwork());
+        }
+        if (other.hasPassword()) {
+          bitField0_ |= 0x00000002;
+          password_ = other.password_;
+          onChanged();
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        return this;
+      }
+
+      public final boolean isInitialized() {
+        if (!hasNetwork()) {
+          
+          return false;
+        }
+        if (!hasPassword()) {
+          
+          return false;
+        }
+        if (!getNetwork().isInitialized()) {
+          
+          return false;
+        }
+        return true;
+      }
+
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        com.googlecode.protobuf.blerpc.api.Api.WifiConnectRequest parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (com.googlecode.protobuf.blerpc.api.Api.WifiConnectRequest) e.getUnfinishedMessage();
+          throw e;
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+      private int bitField0_;
+
+      private com.googlecode.protobuf.blerpc.api.Api.WifiNetwork network_ = com.googlecode.protobuf.blerpc.api.Api.WifiNetwork.getDefaultInstance();
+      private com.google.protobuf.SingleFieldBuilder<
+          com.googlecode.protobuf.blerpc.api.Api.WifiNetwork, com.googlecode.protobuf.blerpc.api.Api.WifiNetwork.Builder, com.googlecode.protobuf.blerpc.api.Api.WifiNetworkOrBuilder> networkBuilder_;
+      /**
+       * <code>required .WifiNetwork network = 1;</code>
+       */
+      public boolean hasNetwork() {
+        return ((bitField0_ & 0x00000001) == 0x00000001);
+      }
+      /**
+       * <code>required .WifiNetwork network = 1;</code>
+       */
+      public com.googlecode.protobuf.blerpc.api.Api.WifiNetwork getNetwork() {
+        if (networkBuilder_ == null) {
+          return network_;
+        } else {
+          return networkBuilder_.getMessage();
+        }
+      }
+      /**
+       * <code>required .WifiNetwork network = 1;</code>
+       */
+      public Builder setNetwork(com.googlecode.protobuf.blerpc.api.Api.WifiNetwork value) {
+        if (networkBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          network_ = value;
+          onChanged();
+        } else {
+          networkBuilder_.setMessage(value);
+        }
+        bitField0_ |= 0x00000001;
+        return this;
+      }
+      /**
+       * <code>required .WifiNetwork network = 1;</code>
+       */
+      public Builder setNetwork(
+          com.googlecode.protobuf.blerpc.api.Api.WifiNetwork.Builder builderForValue) {
+        if (networkBuilder_ == null) {
+          network_ = builderForValue.build();
+          onChanged();
+        } else {
+          networkBuilder_.setMessage(builderForValue.build());
+        }
+        bitField0_ |= 0x00000001;
+        return this;
+      }
+      /**
+       * <code>required .WifiNetwork network = 1;</code>
+       */
+      public Builder mergeNetwork(com.googlecode.protobuf.blerpc.api.Api.WifiNetwork value) {
+        if (networkBuilder_ == null) {
+          if (((bitField0_ & 0x00000001) == 0x00000001) &&
+              network_ != com.googlecode.protobuf.blerpc.api.Api.WifiNetwork.getDefaultInstance()) {
+            network_ =
+              com.googlecode.protobuf.blerpc.api.Api.WifiNetwork.newBuilder(network_).mergeFrom(value).buildPartial();
+          } else {
+            network_ = value;
+          }
+          onChanged();
+        } else {
+          networkBuilder_.mergeFrom(value);
+        }
+        bitField0_ |= 0x00000001;
+        return this;
+      }
+      /**
+       * <code>required .WifiNetwork network = 1;</code>
+       */
+      public Builder clearNetwork() {
+        if (networkBuilder_ == null) {
+          network_ = com.googlecode.protobuf.blerpc.api.Api.WifiNetwork.getDefaultInstance();
+          onChanged();
+        } else {
+          networkBuilder_.clear();
+        }
+        bitField0_ = (bitField0_ & ~0x00000001);
+        return this;
+      }
+      /**
+       * <code>required .WifiNetwork network = 1;</code>
+       */
+      public com.googlecode.protobuf.blerpc.api.Api.WifiNetwork.Builder getNetworkBuilder() {
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return getNetworkFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>required .WifiNetwork network = 1;</code>
+       */
+      public com.googlecode.protobuf.blerpc.api.Api.WifiNetworkOrBuilder getNetworkOrBuilder() {
+        if (networkBuilder_ != null) {
+          return networkBuilder_.getMessageOrBuilder();
+        } else {
+          return network_;
+        }
+      }
+      /**
+       * <code>required .WifiNetwork network = 1;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          com.googlecode.protobuf.blerpc.api.Api.WifiNetwork, com.googlecode.protobuf.blerpc.api.Api.WifiNetwork.Builder, com.googlecode.protobuf.blerpc.api.Api.WifiNetworkOrBuilder> 
+          getNetworkFieldBuilder() {
+        if (networkBuilder_ == null) {
+          networkBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              com.googlecode.protobuf.blerpc.api.Api.WifiNetwork, com.googlecode.protobuf.blerpc.api.Api.WifiNetwork.Builder, com.googlecode.protobuf.blerpc.api.Api.WifiNetworkOrBuilder>(
+                  getNetwork(),
+                  getParentForChildren(),
+                  isClean());
+          network_ = null;
+        }
+        return networkBuilder_;
+      }
+
+      private java.lang.Object password_ = "";
+      /**
+       * <code>required string password = 2;</code>
+       */
+      public boolean hasPassword() {
+        return ((bitField0_ & 0x00000002) == 0x00000002);
+      }
+      /**
+       * <code>required string password = 2;</code>
+       */
+      public java.lang.String getPassword() {
+        java.lang.Object ref = password_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          if (bs.isValidUtf8()) {
+            password_ = s;
+          }
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>required string password = 2;</code>
+       */
+      public com.google.protobuf.ByteString
+          getPasswordBytes() {
+        java.lang.Object ref = password_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          password_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>required string password = 2;</code>
+       */
+      public Builder setPassword(
+          java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000002;
+        password_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>required string password = 2;</code>
+       */
+      public Builder clearPassword() {
+        bitField0_ = (bitField0_ & ~0x00000002);
+        password_ = getDefaultInstance().getPassword();
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>required string password = 2;</code>
+       */
+      public Builder setPasswordBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000002;
+        password_ = value;
+        onChanged();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:WifiConnectRequest)
+    }
+
+    static {
+      defaultInstance = new WifiConnectRequest(true);
+      defaultInstance.initFields();
+    }
+
+    // @@protoc_insertion_point(class_scope:WifiConnectRequest)
+  }
+
+  public interface WifiConnectResponseOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:WifiConnectResponse)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>required bool connected = 1;</code>
+     */
+    boolean hasConnected();
+    /**
+     * <code>required bool connected = 1;</code>
+     */
+    boolean getConnected();
+  }
+  /**
+   * Protobuf type {@code WifiConnectResponse}
+   */
+  public static final class WifiConnectResponse extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:WifiConnectResponse)
+      WifiConnectResponseOrBuilder {
+    // Use WifiConnectResponse.newBuilder() to construct.
+    private WifiConnectResponse(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+      this.unknownFields = builder.getUnknownFields();
+    }
+    private WifiConnectResponse(boolean noInit) { this.unknownFields = com.google.protobuf.UnknownFieldSet.getDefaultInstance(); }
+
+    private static final WifiConnectResponse defaultInstance;
+    public static WifiConnectResponse getDefaultInstance() {
+      return defaultInstance;
+    }
+
+    public WifiConnectResponse getDefaultInstanceForType() {
+      return defaultInstance;
+    }
+
+    private final com.google.protobuf.UnknownFieldSet unknownFields;
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+        getUnknownFields() {
+      return this.unknownFields;
+    }
+    private WifiConnectResponse(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      initFields();
+      int mutable_bitField0_ = 0;
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!parseUnknownField(input, unknownFields,
+                                     extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+            case 8: {
+              bitField0_ |= 0x00000001;
+              connected_ = input.readBool();
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e.getMessage()).setUnfinishedMessage(this);
+      } finally {
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return com.googlecode.protobuf.blerpc.api.Api.internal_static_WifiConnectResponse_descriptor;
+    }
+
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return com.googlecode.protobuf.blerpc.api.Api.internal_static_WifiConnectResponse_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              com.googlecode.protobuf.blerpc.api.Api.WifiConnectResponse.class, com.googlecode.protobuf.blerpc.api.Api.WifiConnectResponse.Builder.class);
+    }
+
+    public static com.google.protobuf.Parser<WifiConnectResponse> PARSER =
+        new com.google.protobuf.AbstractParser<WifiConnectResponse>() {
+      public WifiConnectResponse parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new WifiConnectResponse(input, extensionRegistry);
+      }
+    };
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<WifiConnectResponse> getParserForType() {
+      return PARSER;
+    }
+
+    private int bitField0_;
+    public static final int CONNECTED_FIELD_NUMBER = 1;
+    private boolean connected_;
+    /**
+     * <code>required bool connected = 1;</code>
+     */
+    public boolean hasConnected() {
+      return ((bitField0_ & 0x00000001) == 0x00000001);
+    }
+    /**
+     * <code>required bool connected = 1;</code>
+     */
+    public boolean getConnected() {
+      return connected_;
+    }
+
+    private void initFields() {
+      connected_ = false;
+    }
+    private byte memoizedIsInitialized = -1;
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      if (!hasConnected()) {
+        memoizedIsInitialized = 0;
+        return false;
+      }
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      getSerializedSize();
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        output.writeBool(1, connected_);
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    private int memoizedSerializedSize = -1;
+    public int getSerializedSize() {
+      int size = memoizedSerializedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBoolSize(1, connected_);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSerializedSize = size;
+      return size;
+    }
+
+    private static final long serialVersionUID = 0L;
+    @java.lang.Override
+    protected java.lang.Object writeReplace()
+        throws java.io.ObjectStreamException {
+      return super.writeReplace();
+    }
+
+    public static com.googlecode.protobuf.blerpc.api.Api.WifiConnectResponse parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static com.googlecode.protobuf.blerpc.api.Api.WifiConnectResponse parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static com.googlecode.protobuf.blerpc.api.Api.WifiConnectResponse parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static com.googlecode.protobuf.blerpc.api.Api.WifiConnectResponse parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static com.googlecode.protobuf.blerpc.api.Api.WifiConnectResponse parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static com.googlecode.protobuf.blerpc.api.Api.WifiConnectResponse parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+    public static com.googlecode.protobuf.blerpc.api.Api.WifiConnectResponse parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input);
+    }
+    public static com.googlecode.protobuf.blerpc.api.Api.WifiConnectResponse parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input, extensionRegistry);
+    }
+    public static com.googlecode.protobuf.blerpc.api.Api.WifiConnectResponse parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static com.googlecode.protobuf.blerpc.api.Api.WifiConnectResponse parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+
+    public static Builder newBuilder() { return Builder.create(); }
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder(com.googlecode.protobuf.blerpc.api.Api.WifiConnectResponse prototype) {
+      return newBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() { return newBuilder(this); }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code WifiConnectResponse}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:WifiConnectResponse)
+        com.googlecode.protobuf.blerpc.api.Api.WifiConnectResponseOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return com.googlecode.protobuf.blerpc.api.Api.internal_static_WifiConnectResponse_descriptor;
+      }
+
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return com.googlecode.protobuf.blerpc.api.Api.internal_static_WifiConnectResponse_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                com.googlecode.protobuf.blerpc.api.Api.WifiConnectResponse.class, com.googlecode.protobuf.blerpc.api.Api.WifiConnectResponse.Builder.class);
+      }
+
+      // Construct using com.googlecode.protobuf.blerpc.api.Api.WifiConnectResponse.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
+        }
+      }
+      private static Builder create() {
+        return new Builder();
+      }
+
+      public Builder clear() {
+        super.clear();
+        connected_ = false;
+        bitField0_ = (bitField0_ & ~0x00000001);
+        return this;
+      }
+
+      public Builder clone() {
+        return create().mergeFrom(buildPartial());
+      }
+
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return com.googlecode.protobuf.blerpc.api.Api.internal_static_WifiConnectResponse_descriptor;
+      }
+
+      public com.googlecode.protobuf.blerpc.api.Api.WifiConnectResponse getDefaultInstanceForType() {
+        return com.googlecode.protobuf.blerpc.api.Api.WifiConnectResponse.getDefaultInstance();
+      }
+
+      public com.googlecode.protobuf.blerpc.api.Api.WifiConnectResponse build() {
+        com.googlecode.protobuf.blerpc.api.Api.WifiConnectResponse result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      public com.googlecode.protobuf.blerpc.api.Api.WifiConnectResponse buildPartial() {
+        com.googlecode.protobuf.blerpc.api.Api.WifiConnectResponse result = new com.googlecode.protobuf.blerpc.api.Api.WifiConnectResponse(this);
+        int from_bitField0_ = bitField0_;
+        int to_bitField0_ = 0;
+        if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+          to_bitField0_ |= 0x00000001;
+        }
+        result.connected_ = connected_;
+        result.bitField0_ = to_bitField0_;
+        onBuilt();
+        return result;
+      }
+
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof com.googlecode.protobuf.blerpc.api.Api.WifiConnectResponse) {
+          return mergeFrom((com.googlecode.protobuf.blerpc.api.Api.WifiConnectResponse)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(com.googlecode.protobuf.blerpc.api.Api.WifiConnectResponse other) {
+        if (other == com.googlecode.protobuf.blerpc.api.Api.WifiConnectResponse.getDefaultInstance()) return this;
+        if (other.hasConnected()) {
+          setConnected(other.getConnected());
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        return this;
+      }
+
+      public final boolean isInitialized() {
+        if (!hasConnected()) {
+          
+          return false;
+        }
+        return true;
+      }
+
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        com.googlecode.protobuf.blerpc.api.Api.WifiConnectResponse parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (com.googlecode.protobuf.blerpc.api.Api.WifiConnectResponse) e.getUnfinishedMessage();
+          throw e;
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+      private int bitField0_;
+
+      private boolean connected_ ;
+      /**
+       * <code>required bool connected = 1;</code>
+       */
+      public boolean hasConnected() {
+        return ((bitField0_ & 0x00000001) == 0x00000001);
+      }
+      /**
+       * <code>required bool connected = 1;</code>
+       */
+      public boolean getConnected() {
+        return connected_;
+      }
+      /**
+       * <code>required bool connected = 1;</code>
+       */
+      public Builder setConnected(boolean value) {
+        bitField0_ |= 0x00000001;
+        connected_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>required bool connected = 1;</code>
+       */
+      public Builder clearConnected() {
+        bitField0_ = (bitField0_ & ~0x00000001);
+        connected_ = false;
+        onChanged();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:WifiConnectResponse)
+    }
+
+    static {
+      defaultInstance = new WifiConnectResponse(true);
+      defaultInstance.initFields();
+    }
+
+    // @@protoc_insertion_point(class_scope:WifiConnectResponse)
+  }
+
   /**
    * Protobuf service {@code WifiService}
    */
@@ -2141,6 +3235,14 @@ public final class Api {
           com.googlecode.protobuf.blerpc.api.Api.WifiRequest request,
           com.google.protobuf.RpcCallback<com.googlecode.protobuf.blerpc.api.Api.WifiResponse> done);
 
+      /**
+       * <code>rpc connectWifiNetwork(.WifiConnectRequest) returns (.WifiConnectResponse);</code>
+       */
+      public abstract void connectWifiNetwork(
+          com.google.protobuf.RpcController controller,
+          com.googlecode.protobuf.blerpc.api.Api.WifiConnectRequest request,
+          com.google.protobuf.RpcCallback<com.googlecode.protobuf.blerpc.api.Api.WifiConnectResponse> done);
+
     }
 
     public static com.google.protobuf.Service newReflectiveService(
@@ -2152,6 +3254,14 @@ public final class Api {
             com.googlecode.protobuf.blerpc.api.Api.WifiRequest request,
             com.google.protobuf.RpcCallback<com.googlecode.protobuf.blerpc.api.Api.WifiResponse> done) {
           impl.getWifiNetworks(controller, request, done);
+        }
+
+        @java.lang.Override
+        public  void connectWifiNetwork(
+            com.google.protobuf.RpcController controller,
+            com.googlecode.protobuf.blerpc.api.Api.WifiConnectRequest request,
+            com.google.protobuf.RpcCallback<com.googlecode.protobuf.blerpc.api.Api.WifiConnectResponse> done) {
+          impl.connectWifiNetwork(controller, request, done);
         }
 
       };
@@ -2178,6 +3288,8 @@ public final class Api {
           switch(method.getIndex()) {
             case 0:
               return impl.getWifiNetworks(controller, (com.googlecode.protobuf.blerpc.api.Api.WifiRequest)request);
+            case 1:
+              return impl.connectWifiNetwork(controller, (com.googlecode.protobuf.blerpc.api.Api.WifiConnectRequest)request);
             default:
               throw new java.lang.AssertionError("Can't get here.");
           }
@@ -2194,6 +3306,8 @@ public final class Api {
           switch(method.getIndex()) {
             case 0:
               return com.googlecode.protobuf.blerpc.api.Api.WifiRequest.getDefaultInstance();
+            case 1:
+              return com.googlecode.protobuf.blerpc.api.Api.WifiConnectRequest.getDefaultInstance();
             default:
               throw new java.lang.AssertionError("Can't get here.");
           }
@@ -2210,6 +3324,8 @@ public final class Api {
           switch(method.getIndex()) {
             case 0:
               return com.googlecode.protobuf.blerpc.api.Api.WifiResponse.getDefaultInstance();
+            case 1:
+              return com.googlecode.protobuf.blerpc.api.Api.WifiConnectResponse.getDefaultInstance();
             default:
               throw new java.lang.AssertionError("Can't get here.");
           }
@@ -2225,6 +3341,14 @@ public final class Api {
         com.google.protobuf.RpcController controller,
         com.googlecode.protobuf.blerpc.api.Api.WifiRequest request,
         com.google.protobuf.RpcCallback<com.googlecode.protobuf.blerpc.api.Api.WifiResponse> done);
+
+    /**
+     * <code>rpc connectWifiNetwork(.WifiConnectRequest) returns (.WifiConnectResponse);</code>
+     */
+    public abstract void connectWifiNetwork(
+        com.google.protobuf.RpcController controller,
+        com.googlecode.protobuf.blerpc.api.Api.WifiConnectRequest request,
+        com.google.protobuf.RpcCallback<com.googlecode.protobuf.blerpc.api.Api.WifiConnectResponse> done);
 
     public static final
         com.google.protobuf.Descriptors.ServiceDescriptor
@@ -2253,6 +3377,11 @@ public final class Api {
             com.google.protobuf.RpcUtil.<com.googlecode.protobuf.blerpc.api.Api.WifiResponse>specializeCallback(
               done));
           return;
+        case 1:
+          this.connectWifiNetwork(controller, (com.googlecode.protobuf.blerpc.api.Api.WifiConnectRequest)request,
+            com.google.protobuf.RpcUtil.<com.googlecode.protobuf.blerpc.api.Api.WifiConnectResponse>specializeCallback(
+              done));
+          return;
         default:
           throw new java.lang.AssertionError("Can't get here.");
       }
@@ -2269,6 +3398,8 @@ public final class Api {
       switch(method.getIndex()) {
         case 0:
           return com.googlecode.protobuf.blerpc.api.Api.WifiRequest.getDefaultInstance();
+        case 1:
+          return com.googlecode.protobuf.blerpc.api.Api.WifiConnectRequest.getDefaultInstance();
         default:
           throw new java.lang.AssertionError("Can't get here.");
       }
@@ -2285,6 +3416,8 @@ public final class Api {
       switch(method.getIndex()) {
         case 0:
           return com.googlecode.protobuf.blerpc.api.Api.WifiResponse.getDefaultInstance();
+        case 1:
+          return com.googlecode.protobuf.blerpc.api.Api.WifiConnectResponse.getDefaultInstance();
         default:
           throw new java.lang.AssertionError("Can't get here.");
       }
@@ -2320,6 +3453,21 @@ public final class Api {
             com.googlecode.protobuf.blerpc.api.Api.WifiResponse.class,
             com.googlecode.protobuf.blerpc.api.Api.WifiResponse.getDefaultInstance()));
       }
+
+      public  void connectWifiNetwork(
+          com.google.protobuf.RpcController controller,
+          com.googlecode.protobuf.blerpc.api.Api.WifiConnectRequest request,
+          com.google.protobuf.RpcCallback<com.googlecode.protobuf.blerpc.api.Api.WifiConnectResponse> done) {
+        channel.callMethod(
+          getDescriptor().getMethods().get(1),
+          controller,
+          request,
+          com.googlecode.protobuf.blerpc.api.Api.WifiConnectResponse.getDefaultInstance(),
+          com.google.protobuf.RpcUtil.generalizeCallback(
+            done,
+            com.googlecode.protobuf.blerpc.api.Api.WifiConnectResponse.class,
+            com.googlecode.protobuf.blerpc.api.Api.WifiConnectResponse.getDefaultInstance()));
+      }
     }
 
     public static BlockingInterface newBlockingStub(
@@ -2331,6 +3479,11 @@ public final class Api {
       public com.googlecode.protobuf.blerpc.api.Api.WifiResponse getWifiNetworks(
           com.google.protobuf.RpcController controller,
           com.googlecode.protobuf.blerpc.api.Api.WifiRequest request)
+          throws com.google.protobuf.ServiceException;
+
+      public com.googlecode.protobuf.blerpc.api.Api.WifiConnectResponse connectWifiNetwork(
+          com.google.protobuf.RpcController controller,
+          com.googlecode.protobuf.blerpc.api.Api.WifiConnectRequest request)
           throws com.google.protobuf.ServiceException;
     }
 
@@ -2350,6 +3503,18 @@ public final class Api {
           controller,
           request,
           com.googlecode.protobuf.blerpc.api.Api.WifiResponse.getDefaultInstance());
+      }
+
+
+      public com.googlecode.protobuf.blerpc.api.Api.WifiConnectResponse connectWifiNetwork(
+          com.google.protobuf.RpcController controller,
+          com.googlecode.protobuf.blerpc.api.Api.WifiConnectRequest request)
+          throws com.google.protobuf.ServiceException {
+        return (com.googlecode.protobuf.blerpc.api.Api.WifiConnectResponse) channel.callBlockingMethod(
+          getDescriptor().getMethods().get(1),
+          controller,
+          request,
+          com.googlecode.protobuf.blerpc.api.Api.WifiConnectResponse.getDefaultInstance());
       }
 
     }
@@ -2372,6 +3537,16 @@ public final class Api {
   private static
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_WifiResponse_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_WifiConnectRequest_descriptor;
+  private static
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_WifiConnectRequest_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_WifiConnectResponse_descriptor;
+  private static
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_WifiConnectResponse_fieldAccessorTable;
 
   public static com.google.protobuf.Descriptors.FileDescriptor
       getDescriptor() {
@@ -2386,9 +3561,14 @@ public final class Api {
       "\005level\030\004 \001(\005\022\021\n\tfrequency\030\005 \001(\005\022\021\n\ttimes" +
       "tamp\030\006 \001(\003\"\036\n\013WifiRequest\022\017\n\007timeout\030\001 \001" +
       "(\005\".\n\014WifiResponse\022\036\n\010networks\030\001 \003(\0132\014.W" +
-      "ifiNetwork2=\n\013WifiService\022.\n\017getWifiNetw" +
-      "orks\022\014.WifiRequest\032\r.WifiResponseB\'\n\"com" +
-      ".googlecode.protobuf.blerpc.api\210\001\001"
+      "ifiNetwork\"E\n\022WifiConnectRequest\022\035\n\007netw" +
+      "ork\030\001 \002(\0132\014.WifiNetwork\022\020\n\010password\030\002 \002(" +
+      "\t\"(\n\023WifiConnectResponse\022\021\n\tconnected\030\001 " +
+      "\002(\0102~\n\013WifiService\022.\n\017getWifiNetworks\022\014." +
+      "WifiRequest\032\r.WifiResponse\022?\n\022connectWif",
+      "iNetwork\022\023.WifiConnectRequest\032\024.WifiConn" +
+      "ectResponseB\'\n\"com.googlecode.protobuf.b" +
+      "lerpc.api\210\001\001"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -2420,6 +3600,18 @@ public final class Api {
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_WifiResponse_descriptor,
         new java.lang.String[] { "Networks", });
+    internal_static_WifiConnectRequest_descriptor =
+      getDescriptor().getMessageTypes().get(3);
+    internal_static_WifiConnectRequest_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_WifiConnectRequest_descriptor,
+        new java.lang.String[] { "Network", "Password", });
+    internal_static_WifiConnectResponse_descriptor =
+      getDescriptor().getMessageTypes().get(4);
+    internal_static_WifiConnectResponse_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_WifiConnectResponse_descriptor,
+        new java.lang.String[] { "Connected", });
   }
 
   // @@protoc_insertion_point(outer_class_scope)
