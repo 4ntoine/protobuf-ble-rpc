@@ -217,37 +217,36 @@ public class BleRpcConnectionFactory extends BluetoothGattCallback implements Rp
     public Connection createConnection() throws IOException {
         this.serverDiscovered = false;
 
-        if (connection == null) {
-            connectionThrowable = null;
+        // create connection every time it's required
+        connectionThrowable = null;
+        connected.set(false);
+
+        // turn BLE on
+        if (!adapter.isEnabled())
+            adapter.enable();
+
+        // start connection
+        long discoveryStarted = System.currentTimeMillis();
+
+        adapter.startLeScan(new UUID[]{ serviceUUID }, connectScanCallback);
+
+        // wait for connected
+        while (!connected.get()) {
+            try {
+                Thread.sleep(10);
+            } catch (InterruptedException e) {
+            }
+
+            // check timeout
+            if ((System.currentTimeMillis() - discoveryStarted) > discoveryTimeout) {
+                adapter.stopLeScan(connectScanCallback);
+                throw new DiscoveryTimeoutException(bluetoothDevice, discoveryTimeout);
+            }
+        }
+
+        if (connectionThrowable != null) {
             connected.set(false);
-
-            // turn BLE on
-            if (!adapter.isEnabled())
-                adapter.enable();
-
-            // start connection
-            long discoveryStarted = System.currentTimeMillis();
-
-            adapter.startLeScan(new UUID[]{ serviceUUID }, connectScanCallback);
-
-            // wait for connected
-            while (!connected.get()) {
-                try {
-                    Thread.sleep(10);
-                } catch (InterruptedException e) {
-                }
-
-                // check timeout
-                if ((System.currentTimeMillis() - discoveryStarted) > discoveryTimeout) {
-                    adapter.stopLeScan(connectScanCallback);
-                    throw new DiscoveryTimeoutException(bluetoothDevice, discoveryTimeout);
-                }
-            }
-
-            if (connectionThrowable != null) {
-                connected.set(false);
-                throw new RuntimeException(connectionThrowable);
-            }
+            throw new RuntimeException(connectionThrowable);
         }
 
         return connection;
