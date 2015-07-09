@@ -15,6 +15,7 @@ import com.google.protobuf.RpcController;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.text.MessageFormat;
 import java.util.List;
 
 /**
@@ -130,7 +131,8 @@ public class WifiServiceImpl extends Api.WifiService {
         wifiConfig.SSID = String.format("\"%s\"", request.getNetwork().getSSID());
         wifiConfig.preSharedKey = String.format("\"%s\"", request.getPassword());
 
-        logger.debug("Trying to connect to ssid=%s with password=%s)", wifiConfig.SSID, request.getPassword());
+        logger.debug(MessageFormat.format("Trying to connect to ssid={0} with password={1}",
+                wifiConfig.SSID, request.getPassword()));
 
         // remember id
         int netId = wifiManager.addNetwork(wifiConfig);
