@@ -15,6 +15,7 @@ import com.googlecode.protobuf.socketrpc.RpcChannels;
 import com.googlecode.protobuf.socketrpc.RpcConnectionFactory;
 import com.googlecode.protobuf.socketrpc.SocketRpcController;
 
+import com.googlecode.protobuf.blerpc.UUIDHelper;
 import java.text.MessageFormat;
 import java.util.HashSet;
 import java.util.Set;
@@ -96,9 +97,9 @@ public class MyActivity extends Activity implements BleRpcConnectionFactory.Disc
 
         connectionFactory = new BleRpcConnectionFactory(
                 MyActivity.this,
-                "6855f2ce-8dc6-4228-8bec-531167e00111",
-                "09de1235-6594-4a2b-8d88-ad5eb8c00222",
-                "c3a29c57-7a4b-492c-b7c4-7d807f000333",
+                UUIDHelper.expandUUID("FFE2"),
+                UUIDHelper.expandUUID("FFE3"),
+                UUIDHelper.expandUUID("FFE4"),
                 true
         );
     }

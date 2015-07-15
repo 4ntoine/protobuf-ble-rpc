@@ -216,7 +216,11 @@ public class ServerBleRpcConnectionFactory implements ServerRpcConnectionFactory
         server.addService(service);
 
         // advertise server
-        advertiser = adapter.getBluetoothLeAdvertiser();
+        try {
+            advertiser = adapter.getBluetoothLeAdvertiser();
+        } catch(Throwable t) {
+            throw new RuntimeException(t); // wrong API version
+        }
         if (advertiser != null) {
             startAdvertising(UUID.fromString(serviceUUID), advertiser);
         } else

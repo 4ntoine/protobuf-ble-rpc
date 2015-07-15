@@ -9,6 +9,7 @@ import com.googlecode.protobuf.socketrpc.RpcServer;
 import com.googlecode.protobuf.socketrpc.ServerRpcConnectionFactory;
 import org.slf4j.impl.EditTextLoggerFactory;
 
+import com.googlecode.protobuf.blerpc.UUIDHelper;
 import java.util.concurrent.Executors;
 
 public class MyActivity extends Activity {
@@ -36,9 +37,9 @@ public class MyActivity extends Activity {
         // server
         ServerRpcConnectionFactory rpcConnectionFactory = new ServerBleRpcConnectionFactory(
                 this,
-                "6855f2ce-8dc6-4228-8bec-531167e00111",
-                "09de1235-6594-4a2b-8d88-ad5eb8c00222",
-                "c3a29c57-7a4b-492c-b7c4-7d807f000333",
+                UUIDHelper.expandUUID("FFE2"),
+                UUIDHelper.expandUUID("FFE3"),
+                UUIDHelper.expandUUID("FFE4"),
                 true);
 
         server = new RpcServer(rpcConnectionFactory, Executors.newFixedThreadPool(1), true);
