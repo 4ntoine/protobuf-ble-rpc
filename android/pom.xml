@@ -19,7 +19,7 @@
     </developers>
 
     <properties>
-        <version>1.3</version>
+        <version>1.4</version>
         <protobuf.version>2.6.1</protobuf.version>
     </properties>
 	

@@ -38,6 +38,7 @@ public class ServerBleRpcConnectionFactory implements ServerRpcConnectionFactory
     private BluetoothGattServer server;
     private UUID serviceUUID;
     private BluetoothGattService service;
+    private BluetoothGattService disService;
     private BluetoothGattCharacteristic readCharacteristic;
     private BluetoothGattCharacteristic writeCharacteristic;
     private boolean delimited;
@@ -68,12 +69,49 @@ public class ServerBleRpcConnectionFactory implements ServerRpcConnectionFactory
 
     private String bleDeviceName;
 
+    /**
+     * Data for DIS
+     */
+    public static class Dis {
+        private String manufacturerName;
+        private String modelNumber;
+        private String serialNumber;
+        private String hardwareRevision;
+        private String firmwareRevision;
+        private String softwareRevision;
+        private String systemID;
+        private String certInfo;
+
+        public Dis(
+                 String manufacturerName,
+                 String modelNumber,
+                 String serialNumber,
+                 String hardwareRevision,
+                 String firmwareRevision,
+                 String softwareRevision,
+                 String systemID,
+                 String certInfo)
+        {
+            this.manufacturerName = manufacturerName;
+            this.modelNumber = modelNumber;
+            this.serialNumber = serialNumber;
+            this.hardwareRevision = hardwareRevision;
+            this.firmwareRevision = firmwareRevision;
+            this.softwareRevision = softwareRevision;
+            this.systemID = systemID;
+            this.certInfo = certInfo;
+        }
+    }
+
+    private Dis dis;
+
     public ServerBleRpcConnectionFactory(
             Context context,
             String bleDeviceName,
             String serviceUUID,
             String readCharacteristicUUID,
             String writeCharacteristicUUID,
+            Dis dis,
             boolean delimited) {
 
         this.bleDeviceName = bleDeviceName;
@@ -81,6 +119,7 @@ public class ServerBleRpcConnectionFactory implements ServerRpcConnectionFactory
         manager = (BluetoothManager) context.getSystemService(Context.BLUETOOTH_SERVICE);
         this.delimited = delimited;
         this.context = context;
+        this.dis = dis;
 
         server = manager.openGattServer(context, new BluetoothGattServerCallback() {
             @Override
@@ -118,6 +157,12 @@ public class ServerBleRpcConnectionFactory implements ServerRpcConnectionFactory
 
             @Override
             public void onDescriptorReadRequest(BluetoothDevice device, int requestId, int offset, BluetoothGattDescriptor descriptor) {
+                if (descriptor.getCharacteristic().getService() == disService) {
+                    logger.debug("DIS onDescriptorReadRequest()");
+                    server.sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS, offset, descriptor.getValue());
+                    return;
+                }
+
                 logger.debug("onDescriptorReadRequest()");
 
                 // send current subscription state
@@ -136,6 +181,12 @@ public class ServerBleRpcConnectionFactory implements ServerRpcConnectionFactory
             @Override
             public void onDescriptorWriteRequest(BluetoothDevice device, int requestId, BluetoothGattDescriptor descriptor,
                                                  boolean preparedWrite, boolean responseNeeded, int offset, byte[] value) {
+                if (descriptor.getCharacteristic().getService() == disService) {
+                    logger.debug("DIS onDescriptorWriteRequest()");
+                    server.sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS, offset, descriptor.getValue());
+                    return;
+                }
+
                 logger.debug("onDescriptorWriteRequest()");
 
                 // subscribe/unsubscribe
@@ -162,6 +213,13 @@ public class ServerBleRpcConnectionFactory implements ServerRpcConnectionFactory
             @Override
             public void onCharacteristicWriteRequest(BluetoothDevice device, int requestId, BluetoothGattCharacteristic characteristic,
                                                      boolean preparedWrite, boolean responseNeeded, int offset, byte[] value) {
+
+                if (characteristic.getService() == disService) {
+                    logger.debug("DIS onCharacteristicWriteRequest()");
+                    server.sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS, offset, value);
+                    return;
+                }
+
                 logger.debug("onCharacteristicWriteRequest() " + value.length + " bytes");
 
                 // send write confirmation
@@ -181,7 +239,13 @@ public class ServerBleRpcConnectionFactory implements ServerRpcConnectionFactory
 
             @Override
             public void onCharacteristicReadRequest(BluetoothDevice device, int requestId, int offset, BluetoothGattCharacteristic characteristic) {
-               logger.debug("onCharacteristicReadRequest()");
+                if (characteristic.getService() == disService) {
+                    logger.debug("DIS onCharacteristicReadRequest()");
+                    server.sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS, offset, characteristic.getValue());
+                    return;
+                }
+
+                logger.debug("onCharacteristicReadRequest()");
 
                 // send value
                 server.sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS, offset, characteristic.getValue());
@@ -207,7 +271,7 @@ public class ServerBleRpcConnectionFactory implements ServerRpcConnectionFactory
             */
         });
 
-
+        // primary service
         this.serviceUUID = UUID.fromString(serviceUUID);
         service = new BluetoothGattService(this.serviceUUID, BluetoothGattService.SERVICE_TYPE_PRIMARY);
 
@@ -235,8 +299,94 @@ public class ServerBleRpcConnectionFactory implements ServerRpcConnectionFactory
         service.addCharacteristic(writeCharacteristic);
         server.addService(service);
 
+        // DIS
+        if (dis != null) {
+            logger.debug("Providing DIS");
+            disService = new BluetoothGattService(
+                    UUID.fromString(DIS_SERVICE_UUID),
+                    BluetoothGattService.SERVICE_TYPE_PRIMARY);
+
+            // manufacturer name
+            BluetoothGattCharacteristic manufacturerNameChar = new BluetoothGattCharacteristic(
+                    UUID.fromString(DIS_MANUFACTURER_UUID),
+                    BluetoothGattCharacteristic.PROPERTY_READ,
+                    BluetoothGattCharacteristic.PERMISSION_READ);
+            manufacturerNameChar.setValue(dis.manufacturerName);
+            disService.addCharacteristic(manufacturerNameChar);
+
+            // model number
+            BluetoothGattCharacteristic modelNumberChar = new BluetoothGattCharacteristic(
+                    UUID.fromString(DIS_MODEL_NUMBER_UUID),
+                    BluetoothGattCharacteristic.PROPERTY_READ,
+                    BluetoothGattCharacteristic.PERMISSION_READ);
+            modelNumberChar.setValue(dis.modelNumber);
+            disService.addCharacteristic(modelNumberChar);
+
+            // serial number
+            BluetoothGattCharacteristic serialNumberChar = new BluetoothGattCharacteristic(
+                    UUID.fromString(DIS_SERIAL_NUMBER_UUID),
+                    BluetoothGattCharacteristic.PROPERTY_READ,
+                    BluetoothGattCharacteristic.PERMISSION_READ);
+            serialNumberChar.setValue(dis.serialNumber);
+            disService.addCharacteristic(serialNumberChar);
+
+            // hardware revision
+            BluetoothGattCharacteristic hardwareRevisionChar = new BluetoothGattCharacteristic(
+                    UUID.fromString(DIS_HARDWARE_REVISION_UUID),
+                    BluetoothGattCharacteristic.PROPERTY_READ,
+                    BluetoothGattCharacteristic.PERMISSION_READ);
+            hardwareRevisionChar.setValue(dis.hardwareRevision);
+            disService.addCharacteristic(hardwareRevisionChar);
+
+            // firmware revision
+            BluetoothGattCharacteristic firmwareRevisionChar = new BluetoothGattCharacteristic(
+                    UUID.fromString(DIS_FIRMWARE_REVISION_UUID),
+                    BluetoothGattCharacteristic.PROPERTY_READ,
+                    BluetoothGattCharacteristic.PERMISSION_READ);
+            firmwareRevisionChar.setValue(dis.firmwareRevision);
+            disService.addCharacteristic(firmwareRevisionChar);
+
+            // software revision
+            BluetoothGattCharacteristic softwareRevisionChar = new BluetoothGattCharacteristic(
+                    UUID.fromString(DIS_SOFTWARE_REVISION_UUID),
+                    BluetoothGattCharacteristic.PROPERTY_READ,
+                    BluetoothGattCharacteristic.PERMISSION_READ);
+            softwareRevisionChar.setValue(dis.softwareRevision);
+            disService.addCharacteristic(softwareRevisionChar);
+
+            // system ID
+            BluetoothGattCharacteristic systemIDChar = new BluetoothGattCharacteristic(
+                    UUID.fromString(DIS_SYSTEM_ID_UUID),
+                    BluetoothGattCharacteristic.PROPERTY_READ,
+                    BluetoothGattCharacteristic.PERMISSION_READ);
+            systemIDChar.setValue(dis.systemID);
+            disService.addCharacteristic(systemIDChar);
+
+            // cert info
+            BluetoothGattCharacteristic certInfoChar = new BluetoothGattCharacteristic(
+                    UUID.fromString(DIS_CERT_INFO_UUID),
+                    BluetoothGattCharacteristic.PROPERTY_READ,
+                    BluetoothGattCharacteristic.PERMISSION_READ);
+            certInfoChar.setValue(dis.certInfo);
+            disService.addCharacteristic(certInfoChar);
+
+            server.addService(disService);
+        } else {
+            logger.debug("NOT providing DIS");
+        }
+
         startAdvertising();
     }
+
+    private static String DIS_SERVICE_UUID           = UUIDHelper.expandUUID("180A");
+    private static String DIS_MANUFACTURER_UUID      = UUIDHelper.expandUUID("2A29");
+    private static String DIS_MODEL_NUMBER_UUID      = UUIDHelper.expandUUID("2A24");
+    private static String DIS_SERIAL_NUMBER_UUID     = UUIDHelper.expandUUID("2A25");
+    private static String DIS_HARDWARE_REVISION_UUID = UUIDHelper.expandUUID("2A27");
+    private static String DIS_FIRMWARE_REVISION_UUID = UUIDHelper.expandUUID("2A26");
+    private static String DIS_SOFTWARE_REVISION_UUID = UUIDHelper.expandUUID("2A28");
+    private static String DIS_SYSTEM_ID_UUID         = UUIDHelper.expandUUID("2A23");
+    private static String DIS_CERT_INFO_UUID         = UUIDHelper.expandUUID("2A2A");
 
     private boolean isAdvertising = false;
 
@@ -258,11 +408,19 @@ public class ServerBleRpcConnectionFactory implements ServerRpcConnectionFactory
 
         adapter.setName(bleDeviceName);
 
+        UUID[] uuids = new UUID[] {
+            serviceUUID,
+            UUID.fromString(DIS_SERVICE_UUID)
+        };
+
         // advertised service UUID
-        ByteBuffer advertisingUuidBytes = ByteBuffer.allocate(16).order(ByteOrder.LITTLE_ENDIAN);
-        advertisingUuidBytes
-                .putLong(serviceUUID.getLeastSignificantBits())
-                .putLong(serviceUUID.getMostSignificantBits());
+        ByteBuffer advertisingUuidBytes = ByteBuffer.allocate(16 * uuids.length).order(ByteOrder.LITTLE_ENDIAN);
+
+        for (int i=0; i<uuids.length; i++) {
+            advertisingUuidBytes
+                .putLong(uuids[i].getLeastSignificantBits())
+                .putLong(uuids[i].getMostSignificantBits());
+        }
 
         server.setAdvDataEx(
                 true,  // boolean advData
@@ -325,6 +483,7 @@ public class ServerBleRpcConnectionFactory implements ServerRpcConnectionFactory
             eachEntry.getValue().close();
         }
         connections.clear();
+        server.close();
     }
 
     @Override

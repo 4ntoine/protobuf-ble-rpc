@@ -76,6 +76,18 @@ public class MyActivity extends Activity {
                 UUIDHelper.expandUUID("FFE2"),
                 UUIDHelper.expandUUID("FFE3"),
                 UUIDHelper.expandUUID("FFE4"),
+
+                // DIS service information
+                new ServerBleRpcConnectionFactory.Dis(
+                    "manufacturerString",
+                    "modelNumber",
+                    "serialNumber",
+                    "hardwareRevision",
+                    "firmwareRevision",
+                    "softwareRevision",
+                    "systemID",
+                    "certInfo"
+                ),
                 true);
 
         server = new RpcServer(rpcConnectionFactory, Executors.newFixedThreadPool(1), true);

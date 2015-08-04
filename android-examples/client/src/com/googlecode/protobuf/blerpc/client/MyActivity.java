@@ -12,7 +12,6 @@ import com.google.protobuf.ServiceException;
 import com.googlecode.protobuf.blerpc.BleRpcConnectionFactory;
 import com.googlecode.protobuf.blerpc.api.Api;
 import com.googlecode.protobuf.socketrpc.RpcChannels;
-import com.googlecode.protobuf.socketrpc.RpcConnectionFactory;
 import com.googlecode.protobuf.socketrpc.SocketRpcController;
 
 import com.googlecode.protobuf.blerpc.UUIDHelper;
