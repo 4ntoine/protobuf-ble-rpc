@@ -2,18 +2,22 @@ package com.googlecode.protobuf.blerpc;
 
 import android.app.Activity;
 import android.bluetooth.*;
+/*
 import android.bluetooth.le.AdvertiseCallback;
 import android.bluetooth.le.AdvertiseData;
 import android.bluetooth.le.AdvertiseSettings;
 import android.bluetooth.le.BluetoothLeAdvertiser;
-import android.content.Context;
 import android.os.ParcelUuid;
+*/
+import android.content.Context;
 import android.widget.Toast;
 import com.googlecode.protobuf.socketrpc.ServerRpcConnectionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -27,16 +31,15 @@ public class ServerBleRpcConnectionFactory implements ServerRpcConnectionFactory
 
     private Logger logger = LoggerFactory.getLogger(ServerBleRpcConnectionFactory.class.getSimpleName());
 
-    private Map<BluetoothDevice, ServerBleConnection> connections =
-            new HashMap<BluetoothDevice, ServerBleConnection>();
+    private Map<BluetoothDevice, ServerBleConnection> connections = new HashMap<BluetoothDevice, ServerBleConnection>();
 
     private BluetoothAdapter adapter;
     private BluetoothManager manager;
     private BluetoothGattServer server;
+    private UUID serviceUUID;
     private BluetoothGattService service;
     private BluetoothGattCharacteristic readCharacteristic;
     private BluetoothGattCharacteristic writeCharacteristic;
-    private BluetoothLeAdvertiser advertiser;
     private boolean delimited;
 
     private AtomicBoolean newConnectionReceived = new AtomicBoolean(false);
@@ -52,13 +55,28 @@ public class ServerBleRpcConnectionFactory implements ServerRpcConnectionFactory
         });
     }
 
+    private void _onNotificationSent(BluetoothDevice device, int status) {
+        ServerBleConnection connection = connections.get(device);
+        if (connection == null)
+            return;
+
+        if (status == BluetoothGatt.GATT_SUCCESS) {
+            // as client reads we need notify output stream to set new value (remaining bytes)
+            connection.getOut().notifyWritten();
+        }
+    }
+
+    private String bleDeviceName;
+
     public ServerBleRpcConnectionFactory(
             Context context,
+            String bleDeviceName,
             String serviceUUID,
             String readCharacteristicUUID,
             String writeCharacteristicUUID,
             boolean delimited) {
 
+        this.bleDeviceName = bleDeviceName;
         adapter = BluetoothAdapter.getDefaultAdapter();
         manager = (BluetoothManager) context.getSystemService(Context.BLUETOOTH_SERVICE);
         this.delimited = delimited;
@@ -78,6 +96,9 @@ public class ServerBleRpcConnectionFactory implements ServerRpcConnectionFactory
                     newConnectionReceived.set(true); // signal new connection
 
                     logger.debug("Client connected: " + device.toString());
+
+                    // allow only 1 connection at the same time
+                    stopAdvertising();
                 }
 
                 if (newState == BluetoothGatt.STATE_DISCONNECTED) {
@@ -91,6 +112,7 @@ public class ServerBleRpcConnectionFactory implements ServerRpcConnectionFactory
                     connections.remove(connection);
 
                     logger.debug("Client disconnected");
+                    startAdvertising();
                 }
             }
 
@@ -174,22 +196,20 @@ public class ServerBleRpcConnectionFactory implements ServerRpcConnectionFactory
                logger.debug("Value read " + characteristic.getValue());
             }
 
+            /*
             @Override
             public void onNotificationSent(BluetoothDevice device, int status) {
-               logger.debug("onNotificationSent: status = " + status);
+                logger.debug("onNotificationSent: status = " + status);
 
-                ServerBleConnection connection = connections.get(device);
-                if (connection == null)
-                    return;
 
-                if (status == BluetoothGatt.GATT_SUCCESS) {
-                    // as client reads we need notify output stream to set new value (remaining bytes)
-                    connection.getOut().notifyWritten();
-                }
+                _onNotificationSent(device, status);
             }
+            */
         });
 
-        service = new BluetoothGattService(UUID.fromString(serviceUUID), BluetoothGattService.SERVICE_TYPE_PRIMARY);
+
+        this.serviceUUID = UUID.fromString(serviceUUID);
+        service = new BluetoothGattService(this.serviceUUID, BluetoothGattService.SERVICE_TYPE_PRIMARY);
 
         // read characteristic
         readCharacteristic =
@@ -215,20 +235,53 @@ public class ServerBleRpcConnectionFactory implements ServerRpcConnectionFactory
         service.addCharacteristic(writeCharacteristic);
         server.addService(service);
 
-        // advertise server
-        try {
-            advertiser = adapter.getBluetoothLeAdvertiser();
-        } catch(Throwable t) {
-            throw new RuntimeException(t); // wrong API version
-        }
-        if (advertiser != null) {
-            startAdvertising(UUID.fromString(serviceUUID), advertiser);
-        } else
-            throw new RuntimeException("Advertising not supported");
+        startAdvertising();
     }
 
-    private void startAdvertising(UUID serviceUUID, BluetoothLeAdvertiser advertiser) {
-       logger.debug("Starting advertising ...");
+    private boolean isAdvertising = false;
+
+    private void stopAdvertising() {
+        logger.debug("Stopping advertising ... ");
+        adapter.setScanMode(BluetoothAdapter.SCAN_MODE_NONE, 0);
+
+        isAdvertising = false;
+    }
+
+    public void shutDown() throws IOException {
+        close();
+        if (isAdvertising)
+            stopAdvertising();
+    }
+
+    private void startAdvertising() {
+        logger.debug("Starting advertising ...");
+
+        adapter.setName(bleDeviceName);
+
+        // advertised service UUID
+        ByteBuffer advertisingUuidBytes = ByteBuffer.allocate(16).order(ByteOrder.LITTLE_ENDIAN);
+        advertisingUuidBytes
+                .putLong(serviceUUID.getLeastSignificantBits())
+                .putLong(serviceUUID.getMostSignificantBits());
+
+        server.setAdvDataEx(
+                true,  // boolean advData
+                true,  // boolean includeName
+                true,  // boolean includeTxPower
+                null,  // minInterval
+                null,  // maxInterval
+                null,  // appearance
+                null,  // manufacturerData
+                null,  // serviceData
+                advertisingUuidBytes.array() // byte[] advertisingUuid
+        );
+        logger.debug("Advertising service UUID={0} with includeName={1} and includeTxPower", serviceUUID.toString(), bleDeviceName);
+        adapter.setScanMode(BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE, 0);
+
+        isAdvertising = true;
+
+
+        /*
         AdvertiseSettings settings = new AdvertiseSettings.Builder()
                 .setConnectable(true)
                 .setAdvertiseMode(AdvertiseSettings.ADVERTISE_MODE_LOW_LATENCY)
@@ -263,15 +316,7 @@ public class ServerBleRpcConnectionFactory implements ServerRpcConnectionFactory
                logger.debug("Failed to advertise");
             }
         });
-
-        /*while (!started.get())
-            try {
-                Thread.sleep(10);
-            } catch (InterruptedException e) {
-            }
-
-        if (!startedSuccessfully.get())
-            throw new RuntimeException("Failed to advertise server");*/
+        */
     }
 
     @Override
@@ -303,12 +348,28 @@ public class ServerBleRpcConnectionFactory implements ServerRpcConnectionFactory
 
     private static final int NOTIFY_ATTEMPTS = 3;
 
-    private boolean tryNotifyChanged(BluetoothDevice device, BluetoothGattCharacteristic c, boolean indication) {
+    private boolean tryNotifyChanged(final BluetoothDevice device, BluetoothGattCharacteristic c, boolean confirm) {
         for (int i=0; i<NOTIFY_ATTEMPTS; i++) {
 
             try {
-                if (server.notifyCharacteristicChanged(device, c, indication)) {
-                   logger.debug("server.notifyCharacteristicChanged() ok");
+                if (server.notifyCharacteristicChanged(device, c, confirm)) {
+                    logger.debug("server.notifyCharacteristicChanged() ok");
+
+                    // simulate onNotificationSent event which is not supported by Hi-P
+                    // WARNING: IT MAKES INTERACTION NOT RELIABLE !
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            try {
+                                logger.debug("simulate onNotificationSent(), wait for 2 ms");
+                                Thread.sleep(2);  // 2 ms (le't say 2 ms is enough for the client to get)
+                            } catch (InterruptedException e) {
+                            }
+
+                            _onNotificationSent(device, BluetoothGatt.GATT_SUCCESS);
+                        }
+                    }) .start();
+
                     return true;
                 }
             } catch (Throwable t) {

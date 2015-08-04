@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.Marker;
 
 import java.text.DateFormat;
+import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -134,17 +135,17 @@ public class EditTextLogger implements Logger {
 
     @Override
     public void debug(String s, Object o) {
-        log(s);
+        log(MessageFormat.format(s, o));
     }
 
     @Override
     public void debug(String s, Object o, Object o1) {
-        log(s);
+        log(MessageFormat.format(s, o, o1));
     }
 
     @Override
     public void debug(String s, Object... objects) {
-        log(s);
+        log(MessageFormat.format(s, objects));
     }
 
     @Override
@@ -164,17 +165,17 @@ public class EditTextLogger implements Logger {
 
     @Override
     public void debug(Marker marker, String s, Object o) {
-        log(s);
+        log(MessageFormat.format(s, o));
     }
 
     @Override
     public void debug(Marker marker, String s, Object o, Object o1) {
-        log(s);
+        log(MessageFormat.format(s, o, o1));
     }
 
     @Override
     public void debug(Marker marker, String s, Object... objects) {
-        log(s);
+        log(MessageFormat.format(s, objects));
     }
 
     @Override
@@ -194,17 +195,17 @@ public class EditTextLogger implements Logger {
 
     @Override
     public void info(String s, Object o) {
-        log(s);
+        log(MessageFormat.format(s, o));
     }
 
     @Override
     public void info(String s, Object o, Object o1) {
-        log(s);
+        log(MessageFormat.format(s, o, o1));
     }
 
     @Override
     public void info(String s, Object... objects) {
-        log(s);
+        log(MessageFormat.format(s, objects));
     }
 
     @Override
@@ -224,17 +225,17 @@ public class EditTextLogger implements Logger {
 
     @Override
     public void info(Marker marker, String s, Object o) {
-        log(s);
+        log(MessageFormat.format(s, o));
     }
 
     @Override
     public void info(Marker marker, String s, Object o, Object o1) {
-        log(s);
+        log(MessageFormat.format(s, o, o1));
     }
 
     @Override
     public void info(Marker marker, String s, Object... objects) {
-        log(s);
+        log(MessageFormat.format(s, objects));
     }
 
     @Override
@@ -254,17 +255,17 @@ public class EditTextLogger implements Logger {
 
     @Override
     public void warn(String s, Object o) {
-        log(s);
+        log(MessageFormat.format(s, o));
     }
 
     @Override
     public void warn(String s, Object... objects) {
-        log(s);
+        log(MessageFormat.format(s, objects));
     }
 
     @Override
     public void warn(String s, Object o, Object o1) {
-        log(s);
+        log(MessageFormat.format(s, o, o1));
     }
 
     @Override
@@ -284,17 +285,17 @@ public class EditTextLogger implements Logger {
 
     @Override
     public void warn(Marker marker, String s, Object o) {
-        log(s);
+        log(MessageFormat.format(s, o));
     }
 
     @Override
     public void warn(Marker marker, String s, Object o, Object o1) {
-        log(s);
+        log(MessageFormat.format(s, o, o1));
     }
 
     @Override
     public void warn(Marker marker, String s, Object... objects) {
-        log(s);
+        log(MessageFormat.format(s, objects));
     }
 
     @Override
@@ -314,17 +315,17 @@ public class EditTextLogger implements Logger {
 
     @Override
     public void error(String s, Object o) {
-        log(s);
+        log(MessageFormat.format(s, o));
     }
 
     @Override
     public void error(String s, Object o, Object o1) {
-        log(s);
+        log(MessageFormat.format(s, o, o1));
     }
 
     @Override
     public void error(String s, Object... objects) {
-        log(s);
+        log(MessageFormat.format(s, objects));
     }
 
     @Override
@@ -344,17 +345,17 @@ public class EditTextLogger implements Logger {
 
     @Override
     public void error(Marker marker, String s, Object o) {
-        log(s);
+        log(MessageFormat.format(s, o));
     }
 
     @Override
     public void error(Marker marker, String s, Object o, Object o1) {
-        log(s);
+        log(MessageFormat.format(s, o1));
     }
 
     @Override
     public void error(Marker marker, String s, Object... objects) {
-        log(s);
+        log(MessageFormat.format(s, objects));
     }
 
     @Override

@@ -25,13 +25,21 @@
     </developers>	
 
     <dependencies>
-        <!-- android -->
+        <!-- android from Hi-P -->
         <dependency>
+            <groupId>com.google.android</groupId>
+            <artifactId>android_hi-p</artifactId>
+            <version>3.0</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- android -->
+        <!--<dependency>
             <groupId>com.google.android</groupId>
             <artifactId>android</artifactId>
             <version>5.0</version>
             <scope>provided</scope>
-        </dependency>
+        </dependency>-->
 
         <!-- common -->
         <dependency>
