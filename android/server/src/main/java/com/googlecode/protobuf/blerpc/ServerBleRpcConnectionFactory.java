@@ -69,6 +69,14 @@ public class ServerBleRpcConnectionFactory implements ServerRpcConnectionFactory
 
     private String bleDeviceName;
 
+    public String getBleDeviceName() {
+        return bleDeviceName;
+    }
+
+    public void setBleDeviceName(String bleDeviceName) {
+        this.bleDeviceName = bleDeviceName;
+    }
+
     /**
      * Data for DIS
      */
@@ -270,6 +278,10 @@ public class ServerBleRpcConnectionFactory implements ServerRpcConnectionFactory
             }
             */
         });
+        if (server == null) {
+            Toast.makeText(context, "Failed to create GattServer", Toast.LENGTH_LONG).show();
+            throw new RuntimeException("Failed to create");
+        }
 
         // primary service
         this.serviceUUID = UUID.fromString(serviceUUID);
@@ -370,7 +382,26 @@ public class ServerBleRpcConnectionFactory implements ServerRpcConnectionFactory
             certInfoChar.setValue(dis.certInfo);
             disService.addCharacteristic(certInfoChar);
 
-            server.addService(disService);
+            int attempts = 0;
+            while (true) {
+                try {
+
+                    // sometimes we have NPE while doing `server.addService(disService)
+                    // so sleep between any attempt
+                    try {
+                        Thread.sleep(5);
+                    } catch (InterruptedException e) {
+                    }
+                    server.addService(disService);
+                    logger.debug("added DIS service to server");
+                    break;
+                } catch (NullPointerException e) {
+                    if (++attempts > 3)
+                        throw new RuntimeException("Failed to add DIS service to server");
+
+                    logger.error("Failed to add DIS service, retrying in 5 ms");
+                }
+            }
         } else {
             logger.debug("NOT providing DIS");
         }
