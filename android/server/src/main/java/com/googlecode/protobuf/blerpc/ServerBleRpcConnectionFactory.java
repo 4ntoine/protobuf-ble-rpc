@@ -88,7 +88,6 @@ public class ServerBleRpcConnectionFactory implements ServerRpcConnectionFactory
         private String firmwareRevision;
         private String softwareRevision;
         private String systemID;
-        private String certInfo;
 
         public Dis(
                  String manufacturerName,
@@ -97,8 +96,7 @@ public class ServerBleRpcConnectionFactory implements ServerRpcConnectionFactory
                  String hardwareRevision,
                  String firmwareRevision,
                  String softwareRevision,
-                 String systemID,
-                 String certInfo)
+                 String systemID)
         {
             this.manufacturerName = manufacturerName;
             this.modelNumber = modelNumber;
@@ -107,7 +105,6 @@ public class ServerBleRpcConnectionFactory implements ServerRpcConnectionFactory
             this.firmwareRevision = firmwareRevision;
             this.softwareRevision = softwareRevision;
             this.systemID = systemID;
-            this.certInfo = certInfo;
         }
     }
 

@@ -85,8 +85,7 @@ public class MyActivity extends Activity {
                     "hardwareRevision",
                     "firmwareRevision",
                     "softwareRevision",
-                    "systemID",
-                    "certInfo"
+                    "systemID"
                 ),
                 true);
 
