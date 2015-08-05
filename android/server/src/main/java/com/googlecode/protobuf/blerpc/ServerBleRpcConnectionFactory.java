@@ -371,14 +371,6 @@ public class ServerBleRpcConnectionFactory implements ServerRpcConnectionFactory
             systemIDChar.setValue(dis.systemID);
             disService.addCharacteristic(systemIDChar);
 
-            // cert info
-            BluetoothGattCharacteristic certInfoChar = new BluetoothGattCharacteristic(
-                    UUID.fromString(DIS_CERT_INFO_UUID),
-                    BluetoothGattCharacteristic.PROPERTY_READ,
-                    BluetoothGattCharacteristic.PERMISSION_READ);
-            certInfoChar.setValue(dis.certInfo);
-            disService.addCharacteristic(certInfoChar);
-
             int attempts = 0;
             while (true) {
                 try {
