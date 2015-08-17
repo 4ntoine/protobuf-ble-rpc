@@ -10,6 +10,7 @@ import android.bluetooth.le.BluetoothLeAdvertiser;
 import android.os.ParcelUuid;
 */
 import android.content.Context;
+import android.util.Log;
 import android.widget.Toast;
 import com.googlecode.protobuf.socketrpc.ServerRpcConnectionFactory;
 import org.slf4j.Logger;
@@ -87,7 +88,6 @@ public class ServerBleRpcConnectionFactory implements ServerRpcConnectionFactory
         private String hardwareRevision;
         private String firmwareRevision;
         private String softwareRevision;
-        private String systemID;
 
         public Dis(
                  String manufacturerName,
@@ -95,8 +95,7 @@ public class ServerBleRpcConnectionFactory implements ServerRpcConnectionFactory
                  String serialNumber,
                  String hardwareRevision,
                  String firmwareRevision,
-                 String softwareRevision,
-                 String systemID)
+                 String softwareRevision)
         {
             this.manufacturerName = manufacturerName;
             this.modelNumber = modelNumber;
@@ -104,7 +103,6 @@ public class ServerBleRpcConnectionFactory implements ServerRpcConnectionFactory
             this.hardwareRevision = hardwareRevision;
             this.firmwareRevision = firmwareRevision;
             this.softwareRevision = softwareRevision;
-            this.systemID = systemID;
         }
     }
 
@@ -129,6 +127,10 @@ public class ServerBleRpcConnectionFactory implements ServerRpcConnectionFactory
         server = manager.openGattServer(context, new BluetoothGattServerCallback() {
             @Override
             public void onConnectionStateChange(BluetoothDevice device, int status, int newState) {
+                logger.debug("onConnectionStateChange(device={0}, status={1}, newState={2})",
+                        device.getName() + "(" + device.getAddress() + ")",
+                        status,
+                        newState);
 
                 if (newState == BluetoothGatt.STATE_CONNECTED) {
                     // new device connected - new connection
@@ -364,12 +366,14 @@ public class ServerBleRpcConnectionFactory implements ServerRpcConnectionFactory
             disService.addCharacteristic(softwareRevisionChar);
 
             // system ID
+            /*
             BluetoothGattCharacteristic systemIDChar = new BluetoothGattCharacteristic(
                     UUID.fromString(DIS_SYSTEM_ID_UUID),
                     BluetoothGattCharacteristic.PROPERTY_READ,
                     BluetoothGattCharacteristic.PERMISSION_READ);
-            systemIDChar.setValue(dis.systemID);
+            systemIDChar.setValue(getSystemId(adapter.getAddress()));
             disService.addCharacteristic(systemIDChar);
+            */
 
             int attempts = 0;
             while (true) {
@@ -398,6 +402,51 @@ public class ServerBleRpcConnectionFactory implements ServerRpcConnectionFactory
         startAdvertising();
     }
 
+    private byte[] getSystemId(String bleMacAddress) {
+        byte systemId[] = new byte[8];
+
+        // convert own address from string to bytes
+        byte ownAddress[] = new byte[6];
+        String ownAddressParts[] = bleMacAddress.split(":");
+        for (int i=0; i<6; i++) {
+            ownAddress[i] = Byte.parseByte(ownAddressParts[i], 16);  // they are in Hex
+        }
+
+        /*
+
+        Hi-P code to generate systemId
+
+      // use 6 bytes of device address for 8 bytes of system ID value
+      systemId[0] = ownAddress[0];
+      systemId[1] = ownAddress[1];
+      systemId[2] = ownAddress[2];
+
+      // set middle bytes to zero
+      systemId[4] = 0x00;
+      systemId[3] = 0x00;
+
+      // shift three bytes up
+      systemId[7] = ownAddress[5];
+      systemId[6] = ownAddress[4];
+      systemId[5] = ownAddress[3];
+         */
+
+        ByteBuffer byteBuffer = ByteBuffer.allocate(8).order(ByteOrder.LITTLE_ENDIAN);
+
+        systemId[0] = 0; //ownAddress[0];
+        systemId[1] = 0; //ownAddress[1];
+        systemId[2] = 0; //ownAddress[2];
+
+        systemId[4] = 0x00;
+        systemId[3] = 0x00;
+
+        systemId[7] = ownAddress[5];
+        systemId[6] = ownAddress[4];
+        systemId[5] = ownAddress[3];
+
+        return systemId;
+    }
+
     private static String DIS_SERVICE_UUID           = UUIDHelper.expandUUID("180A");
     private static String DIS_MANUFACTURER_UUID      = UUIDHelper.expandUUID("2A29");
     private static String DIS_MODEL_NUMBER_UUID      = UUIDHelper.expandUUID("2A24");
@@ -406,12 +455,13 @@ public class ServerBleRpcConnectionFactory implements ServerRpcConnectionFactory
     private static String DIS_FIRMWARE_REVISION_UUID = UUIDHelper.expandUUID("2A26");
     private static String DIS_SOFTWARE_REVISION_UUID = UUIDHelper.expandUUID("2A28");
     private static String DIS_SYSTEM_ID_UUID         = UUIDHelper.expandUUID("2A23");
-    private static String DIS_CERT_INFO_UUID         = UUIDHelper.expandUUID("2A2A");
+//    private static String DIS_CERT_INFO_UUID         = UUIDHelper.expandUUID("2A2A");
 
     private boolean isAdvertising = false;
 
     private void stopAdvertising() {
         logger.debug("Stopping advertising ... ");
+        logger.debug("setScanMode(BluetoothAdapter.SCAN_MODE_NONE, 0)");
         adapter.setScanMode(BluetoothAdapter.SCAN_MODE_NONE, 0);
 
         isAdvertising = false;
@@ -442,6 +492,9 @@ public class ServerBleRpcConnectionFactory implements ServerRpcConnectionFactory
                 .putLong(uuids[i].getMostSignificantBits());
         }
 
+        logger.debug("Advertising service UUID={0} with includeName={1} and includeTxPower", serviceUUID.toString(), bleDeviceName);
+        logger.debug("setAdvDataEx(true, true, true, null, null, null, null, null, ...)");
+
         server.setAdvDataEx(
                 true,  // boolean advData
                 true,  // boolean includeName
@@ -453,7 +506,7 @@ public class ServerBleRpcConnectionFactory implements ServerRpcConnectionFactory
                 null,  // serviceData
                 advertisingUuidBytes.array() // byte[] advertisingUuid
         );
-        logger.debug("Advertising service UUID={0} with includeName={1} and includeTxPower", serviceUUID.toString(), bleDeviceName);
+        logger.debug("setScanMode(BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE, 0)");
         adapter.setScanMode(BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE, 0);
 
         isAdvertising = true;
@@ -504,6 +557,8 @@ public class ServerBleRpcConnectionFactory implements ServerRpcConnectionFactory
         }
         connections.clear();
         server.close();
+
+        logger.debug("server.close()");
     }
 
     @Override

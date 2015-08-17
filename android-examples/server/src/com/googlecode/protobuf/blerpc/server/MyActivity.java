@@ -84,8 +84,7 @@ public class MyActivity extends Activity {
                     "serialNumber",
                     "hardwareRevision",
                     "firmwareRevision",
-                    "softwareRevision",
-                    "systemID"
+                    "softwareRevision"
                 ),
                 true);
 
