@@ -48,6 +48,6 @@ public class EditTextLoggerFactory implements ILoggerFactory {
 
     @Override
     public Logger getLogger(String s) {
-        return new EditTextLogger(s, showSender, showTime, editText, handler);
+        return new EditTextLogger("AllieBleServer", s, showSender, showTime, editText, handler);
     }
 }

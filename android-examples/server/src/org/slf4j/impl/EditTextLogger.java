@@ -1,6 +1,7 @@
 package org.slf4j.impl;
 
 import android.os.Handler;
+import android.util.Log;
 import android.widget.EditText;
 import org.slf4j.Logger;
 import org.slf4j.Marker;
@@ -16,13 +17,15 @@ import java.util.Date;
 public class EditTextLogger implements Logger {
 
     private String sender;
+    private String logCatSender;
     private boolean showSender;
     private boolean showTime;
     private EditText editText;
     private Handler handler;
     private DateFormat formatter = new SimpleDateFormat("HH:mm:ss.SSS");
 
-    public EditTextLogger(String sender, boolean showSender, boolean showTime, EditText editText, Handler handler) {
+    public EditTextLogger(String logCatSender, String sender, boolean showSender, boolean showTime, EditText editText, Handler handler) {
+        this.logCatSender = logCatSender;
         this.sender = sender;
         this.showSender = showSender;
         this.showTime = showTime;
@@ -52,6 +55,10 @@ public class EditTextLogger implements Logger {
                     entry.append(" : ");
 
                 entry.append(message);
+
+                // logcat
+                Log.d(logCatSender, "[" + sender + "] : " + message);
+
                 editText.getText().append(entry.toString());
                 editText.scrollTo(0, Integer.MAX_VALUE); // scroll to the end
             }
