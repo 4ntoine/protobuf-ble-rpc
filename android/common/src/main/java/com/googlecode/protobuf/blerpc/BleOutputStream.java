@@ -57,7 +57,7 @@ public abstract class BleOutputStream extends OutputStream {
         if (!writing.get())
             return;
 
-        if (length == writtenLength.addAndGet(lastPacket.length)) {
+        if (length == writtenLength.addAndGet(lastPacket != null ? lastPacket.length : 0)) {
             finishWriting();
         } else {
             _writePacket();
