@@ -10,7 +10,7 @@ import android.bluetooth.le.BluetoothLeAdvertiser;
 import android.os.ParcelUuid;
 */
 import android.content.Context;
-import android.util.Log;
+import android.os.Handler;
 import android.widget.Toast;
 import com.googlecode.protobuf.socketrpc.ServerRpcConnectionFactory;
 import org.slf4j.Logger;
@@ -108,6 +108,69 @@ public class ServerBleRpcConnectionFactory implements ServerRpcConnectionFactory
 
     private Dis dis;
 
+    private boolean disconnectUnsubscribedClients = false;
+
+    public boolean isDisconnectUnsubscribedClients() {
+        return disconnectUnsubscribedClients;
+    }
+
+    public void setDisconnectUnsubscribedClients(boolean disconnectUnsubscribedClients) {
+        this.disconnectUnsubscribedClients = disconnectUnsubscribedClients;
+    }
+
+    public static final int DISCONNECT_UNSUBSCRIBED_INTERVAL = 3000;
+    private int disconnectUnsubscribedInterval = DISCONNECT_UNSUBSCRIBED_INTERVAL;
+
+    public int getDisconnectUnsubscribedInterval() {
+        return disconnectUnsubscribedInterval;
+    }
+
+    public void setDisconnectUnsubscribedInterval(int disconnectUnsubscribedInterval) {
+        this.disconnectUnsubscribedInterval = disconnectUnsubscribedInterval;
+    }
+
+    private Handler disconnectHandler = new Handler();
+    private DisconnectRunnable disconnectRunnable = null;
+
+    private class DisconnectRunnable extends Thread {
+
+        private BluetoothDevice device;
+
+        public DisconnectRunnable(BluetoothDevice device) {
+            this.device = device;
+        }
+
+        @Override
+        public void run() {
+            logger.debug("Disconnect timeout runnable for {}", device);
+
+            ServerBleConnection connection = connections.get(device);
+            if (connection == null) {
+                logger.debug("No connection found for {}, ignoring", device);
+            } else {
+                logger.warn("Force disconnect {}", device);
+                _disconnect(device);
+            }
+        }
+    }
+
+    protected void _disconnect(BluetoothDevice device) {
+        // device disconnected - connection closed
+        ServerBleConnection connection = connections.get(device);
+        try {
+            connection.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        connections.remove(connection);
+        disconnectRunnable = null;
+        logger.debug("Clean-up for disconnect {} done", device);
+
+        startAdvertising();
+    }
+
+
+
     public ServerBleRpcConnectionFactory(
             Context context,
             String bleDeviceName,
@@ -127,7 +190,7 @@ public class ServerBleRpcConnectionFactory implements ServerRpcConnectionFactory
         server = manager.openGattServer(context, new BluetoothGattServerCallback() {
             @Override
             public void onConnectionStateChange(BluetoothDevice device, int status, int newState) {
-                logger.debug("onConnectionStateChange(device={0}, status={1}, newState={2})",
+                logger.debug("onConnectionStateChange(device={}, status={}, newState={})",
                         device.getName() + "(" + device.getAddress() + ")",
                         status,
                         newState);
@@ -148,17 +211,10 @@ public class ServerBleRpcConnectionFactory implements ServerRpcConnectionFactory
                 }
 
                 if (newState == BluetoothGatt.STATE_DISCONNECTED) {
-                    // device disconnected - connection closed
-                    ServerBleConnection connection = connections.get(device);
-                    try {
-                        connection.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                    connections.remove(connection);
-
                     logger.debug("Client disconnected");
-                    startAdvertising();
+
+                    cancelDisconnectRunnableIfHaving(device);
+                    _disconnect(device);
                 }
             }
 
@@ -211,6 +267,14 @@ public class ServerBleRpcConnectionFactory implements ServerRpcConnectionFactory
                     connection.setSubscribed(false);
 
                     logger.debug("Client unsubscribed");
+
+                    if (disconnectUnsubscribedClients) {
+                        cancelDisconnectRunnableIfHaving(device); // the client can unsubscribe twice (iOS)
+
+                        logger.debug("Schedule disconnecting {}", device);
+                        disconnectRunnable = new DisconnectRunnable(device);
+                        disconnectHandler.postDelayed(disconnectRunnable, disconnectUnsubscribedInterval);
+                    }
                 }
 
                 // send write confirmation
@@ -402,6 +466,14 @@ public class ServerBleRpcConnectionFactory implements ServerRpcConnectionFactory
         startAdvertising();
     }
 
+    private void cancelDisconnectRunnableIfHaving(BluetoothDevice device) {
+        if (disconnectRunnable != null) {
+            logger.debug("Cancelling disconnect runnable");
+            disconnectHandler.removeCallbacks(disconnectRunnable);
+            disconnectRunnable = null;
+        }
+    }
+
     private byte[] getSystemId(String bleMacAddress) {
         byte systemId[] = new byte[8];
 
@@ -492,7 +564,7 @@ public class ServerBleRpcConnectionFactory implements ServerRpcConnectionFactory
                 .putLong(uuids[i].getMostSignificantBits());
         }
 
-        logger.debug("Advertising service UUID={0} with includeName={1} and includeTxPower", serviceUUID.toString(), bleDeviceName);
+        logger.debug("Advertising service UUID={} with includeName={} and includeTxPower", serviceUUID.toString(), bleDeviceName);
         logger.debug("setAdvDataEx(true, true, true, null, null, null, null, null, ...)");
 
         server.setAdvDataEx(
