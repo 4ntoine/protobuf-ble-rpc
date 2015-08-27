@@ -15,7 +15,7 @@ public class BleInputStream extends InputStream {
     private Logger logger = LoggerFactory.getLogger(BleInputStream.class.getSimpleName());
 
     public static final int INPUT_BUFFER_SIZE  = 10 * 1024; // 10 Kb
-    public static final int READ_TIMEOUT = 5 * 60 * 1000; // 5 minutes (for debugging) !
+    public static final int READ_TIMEOUT       = 10 * 1000; // 10 seconds
 
     private byte[] buffer;
     private AtomicInteger lastIndex = new AtomicInteger(0); // last written byte index
@@ -100,8 +100,10 @@ public class BleInputStream extends InputStream {
         // waiting stream to have requested length
         while (available() < length) {
 
-            if ((System.currentTimeMillis() - started) > readTimeout)
+            if ((System.currentTimeMillis() - started) > readTimeout) {
+                logger.error("failed to read {} bytes, only {} available", length, available());
                 return -1; // end of stream
+            }
 
             try {
                 Thread.sleep(10);
