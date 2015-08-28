@@ -149,16 +149,18 @@ public class ServerBleRpcConnectionFactory implements ServerRpcConnectionFactory
                 logger.debug("No connection found for {}, ignoring", device);
             } else {
                 logger.warn("Force disconnect {}", device);
-                _disconnect(device);
+                _disconnect(device, true);
             }
         }
     }
 
-    protected void _disconnect(BluetoothDevice device) {
+    protected void _disconnect(BluetoothDevice device, boolean forceDisconnect) {
         // device disconnected - connection closed
         ServerBleConnection connection = connections.get(device);
         try {
-            server.cancelConnection(device);
+            if (forceDisconnect)
+                server.cancelConnection(device);
+
             connection.close();
         } catch (IOException e) {
             logger.error("failed to close connection to " + device, e);
@@ -213,7 +215,7 @@ public class ServerBleRpcConnectionFactory implements ServerRpcConnectionFactory
                     logger.debug("Client disconnected");
 
                     cancelDisconnectRunnableIfHaving(device);
-                    _disconnect(device);
+                    _disconnect(device, false);
                 }
             }
 
