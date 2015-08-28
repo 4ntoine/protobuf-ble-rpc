@@ -28,10 +28,10 @@
         <androidPluginVersion>3.9.0-rc.3</androidPluginVersion>
 
         <!-- version -->
-        <appVersion>1.4</appVersion>
+        <appVersion>1.7</appVersion>
 
         <!-- lib version -->
-        <libVersion>1.4</libVersion>
+        <libVersion>1.7</libVersion>
 
     </properties>
 	

@@ -158,9 +158,10 @@ public class ServerBleRpcConnectionFactory implements ServerRpcConnectionFactory
         // device disconnected - connection closed
         ServerBleConnection connection = connections.get(device);
         try {
+            server.cancelConnection(device);
             connection.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error("failed to close connection to " + device, e);
         }
         connections.remove(connection);
         disconnectRunnable = null;
@@ -168,8 +169,6 @@ public class ServerBleRpcConnectionFactory implements ServerRpcConnectionFactory
 
         startAdvertising();
     }
-
-
 
     public ServerBleRpcConnectionFactory(
             Context context,
