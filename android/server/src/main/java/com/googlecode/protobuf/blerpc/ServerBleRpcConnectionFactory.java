@@ -217,7 +217,7 @@ public class ServerBleRpcConnectionFactory implements ServerRpcConnectionFactory
                     long now = System.currentTimeMillis();
                     long sessionTime = now - lastConnectionTime;
                     if (sessionTime < 3000) { // 3 seconds
-                        logger.warn("too short session time ({} ms), probably iOS issue !!!");
+                        logger.warn("too short session time ({} ms), probably iOS issue !!!", sessionTime);
                     }
 
                     cancelDisconnectRunnableIfHaving(device);
