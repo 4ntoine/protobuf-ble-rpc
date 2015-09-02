@@ -169,6 +169,8 @@ public class ServerBleRpcConnectionFactory implements ServerRpcConnectionFactory
         startAdvertising();
     }
 
+    private long lastConnectionTime;
+
     public ServerBleRpcConnectionFactory(
             Context context,
             String bleDeviceName,
@@ -203,6 +205,7 @@ public class ServerBleRpcConnectionFactory implements ServerRpcConnectionFactory
                     newConnectionReceived.set(true); // signal new connection
 
                     logger.debug("Client connected: " + device.toString());
+                    lastConnectionTime = System.currentTimeMillis();
 
                     // allow only 1 connection at the same time
                     stopAdvertising();
@@ -210,6 +213,12 @@ public class ServerBleRpcConnectionFactory implements ServerRpcConnectionFactory
 
                 if (newState == BluetoothGatt.STATE_DISCONNECTED) {
                     logger.debug("Client disconnected");
+
+                    long now = System.currentTimeMillis();
+                    long sessionTime = now - lastConnectionTime;
+                    if (sessionTime < 3000) { // 3 seconds
+                        logger.warn("too short session time ({} ms), probably iOS issue !!!");
+                    }
 
                     cancelDisconnectRunnableIfHaving(device);
                     cleanup(device);
