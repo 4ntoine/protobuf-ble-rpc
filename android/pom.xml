@@ -6,7 +6,7 @@
 
 	<groupId>com.googlecode.protobuf.blerpc</groupId>
     <artifactId>parent</artifactId>
-    <version>1.0</version>
+    <version>1.8</version>
     <packaging>pom</packaging>
 	<description>Protobuf BLE RPC (peripheral + cental)</description>
     <name>Protobuf BLE RPC</name>
