@@ -23,10 +23,10 @@ public class BleRpcConnectionFactory extends BluetoothGattCallback implements Rp
     private boolean delimited;
 
     private UUID serviceUUID;
-    private BluetoothDevice bluetoothDevice;
+    private String targetMacAddress;
 
-    public void setBluetoothDevice(BluetoothDevice bluetoothDevice) {
-        this.bluetoothDevice = bluetoothDevice;
+    public void setTargetMacAddress(String targetMacAddress) {
+        this.targetMacAddress = targetMacAddress;
     }
 
     private UUID readCharUUID;
@@ -50,7 +50,7 @@ public class BleRpcConnectionFactory extends BluetoothGattCallback implements Rp
 
     public BleRpcConnectionFactory(Context context,
                                    String serviceUUID,
-                                   BluetoothDevice bluetoothDevice,
+                                   String targetMacAddress,
                                    String readCharUUID,
                                    String writeCharUUID,
                                    boolean delimited) {
@@ -59,7 +59,7 @@ public class BleRpcConnectionFactory extends BluetoothGattCallback implements Rp
         adapter = BluetoothAdapter.getDefaultAdapter();
 
         this.serviceUUID = UUID.fromString(serviceUUID);
-        this.bluetoothDevice = bluetoothDevice;
+        this.targetMacAddress = targetMacAddress;
         this.readCharUUID = UUID.fromString(readCharUUID);
         this.writeCharUUID = UUID.fromString(writeCharUUID);
         this.delimited = delimited;
@@ -164,7 +164,7 @@ public class BleRpcConnectionFactory extends BluetoothGattCallback implements Rp
         public void onLeScan(BluetoothDevice device, int rssi, byte[] scanRecord) {
             if (serverDiscovered    // already discovered
                     ||
-                (bluetoothDevice != null && !bluetoothDevice.equals(device)))   // specific device required and it's not that device
+                (targetMacAddress != null && !device.getAddress().equals(targetMacAddress)))   // specific device required and it's not that device
                 return;
 
             serverDiscovered = true;
@@ -240,7 +240,7 @@ public class BleRpcConnectionFactory extends BluetoothGattCallback implements Rp
             // check timeout
             if ((System.currentTimeMillis() - discoveryStarted) > discoveryTimeout) {
                 adapter.stopLeScan(connectScanCallback);
-                throw new DiscoveryTimeoutException(bluetoothDevice, discoveryTimeout);
+                throw new DiscoveryTimeoutException(targetMacAddress, discoveryTimeout);
             }
         }
 
@@ -257,25 +257,25 @@ public class BleRpcConnectionFactory extends BluetoothGattCallback implements Rp
      */
     public static class DiscoveryTimeoutException extends IOException {
 
-        private BluetoothDevice bluetoothDevice;
+        private String macAddress;
         private int timeOut;
 
-        public BluetoothDevice getBluetoothDevice() {
-            return bluetoothDevice;
+        public String getMacAddress() {
+            return macAddress;
         }
 
         public int getTimeOut() {
             return timeOut;
         }
 
-        public DiscoveryTimeoutException(BluetoothDevice bluetoothDevice, int timeOut) {
-            this.bluetoothDevice = bluetoothDevice;
+        public DiscoveryTimeoutException(String macAddress, int timeOut) {
+            this.macAddress = macAddress;
             this.timeOut = timeOut;
         }
 
         @Override
         public String getMessage() {
-            return MessageFormat.format("Discovery timeout exception: device={0}, timeout={1} ms", bluetoothDevice, timeOut);
+            return MessageFormat.format("Discovery timeout exception: device={0}, timeout={1} ms", macAddress, timeOut);
         }
     }
 }
