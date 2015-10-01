@@ -48,6 +48,10 @@ public class ServerBleRpcConnectionFactory implements ServerRpcConnectionFactory
     private ServerBleConnection newConnection;
     private Context context;
 
+    public Context getContext() {
+        return context;
+    }
+
     private void showText(final String message) {
         ((Activity)context).runOnUiThread(new Runnable() {
             @Override
@@ -471,6 +475,18 @@ public class ServerBleRpcConnectionFactory implements ServerRpcConnectionFactory
         }
 
         startAdvertising();
+    }
+
+    public void setUndiscoverableConnectableMode(boolean applyMode) {
+        if (applyMode) {
+            logger.debug("Setting undiscoverable connectable mode ... ");
+            logger.debug("setScanMode(BluetoothAdapter.SCAN_MODE_CONNECTABLE, 0)");
+            adapter.setScanMode(BluetoothAdapter.SCAN_MODE_CONNECTABLE, 0);
+
+            isAdvertising = false;
+        } else {
+            startAdvertising();
+        }
     }
 
     private void cancelDisconnectRunnableIfHaving(BluetoothDevice device) {
