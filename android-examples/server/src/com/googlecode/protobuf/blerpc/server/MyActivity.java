@@ -84,7 +84,7 @@ public class MyActivity extends Activity {
                     "serialNumber",
                     "hardwareRevision",
                     "firmwareRevision",
-                    "softwareRevision"
+                    "12345678901234567890"    // 22 max, 25 to test limitation
                 ),
                 true);
 

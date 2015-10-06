@@ -437,7 +437,14 @@ public class ServerBleRpcConnectionFactory implements ServerRpcConnectionFactory
                     UUID.fromString(DIS_SOFTWARE_REVISION_UUID),
                     BluetoothGattCharacteristic.PROPERTY_READ,
                     BluetoothGattCharacteristic.PERMISSION_READ);
-            softwareRevisionChar.setValue(dis.softwareRevision);
+
+            // limit software revision length
+            int software_revision_length = dis.softwareRevision.length();
+            final int max_software_revision_length = 22;
+            String prepared_software_revision = (software_revision_length > max_software_revision_length
+                    ? dis.softwareRevision.substring(0, max_software_revision_length)
+                    : dis.softwareRevision);
+            softwareRevisionChar.setValue(prepared_software_revision);
             disService.addCharacteristic(softwareRevisionChar);
 
             // system ID
