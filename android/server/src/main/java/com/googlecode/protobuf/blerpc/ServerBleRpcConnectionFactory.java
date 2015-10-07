@@ -47,6 +47,7 @@ public class ServerBleRpcConnectionFactory implements ServerRpcConnectionFactory
     private AtomicBoolean newConnectionReceived = new AtomicBoolean(false);
     private ServerBleConnection newConnection;
     private Context context;
+    public static final int MAX_SOFTWARE_REVISION_LENGTH = 21;
 
     public Context getContext() {
         return context;
@@ -440,9 +441,8 @@ public class ServerBleRpcConnectionFactory implements ServerRpcConnectionFactory
 
             // limit software revision length
             int software_revision_length = dis.softwareRevision.length();
-            final int max_software_revision_length = 22;
-            String prepared_software_revision = (software_revision_length > max_software_revision_length
-                    ? dis.softwareRevision.substring(0, max_software_revision_length)
+            String prepared_software_revision = (software_revision_length > MAX_SOFTWARE_REVISION_LENGTH
+                    ? dis.softwareRevision.substring(0, MAX_SOFTWARE_REVISION_LENGTH)
                     : dis.softwareRevision);
             softwareRevisionChar.setValue(prepared_software_revision);
             disService.addCharacteristic(softwareRevisionChar);
