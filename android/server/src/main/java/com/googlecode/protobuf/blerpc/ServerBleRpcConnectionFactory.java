@@ -19,10 +19,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -167,9 +164,9 @@ public class ServerBleRpcConnectionFactory implements ServerRpcConnectionFactory
         } catch (IOException e) {
             logger.error("failed to close connection to " + device, e);
         }
-        connections.remove(connection);
+        connections.remove(device);
         disconnectRunnable = null;
-        logger.debug("Clean-up for disconnect {} done", device);
+        logger.debug("Clean-up for {} disconnect done", device);
 
         startAdvertising();
     }
