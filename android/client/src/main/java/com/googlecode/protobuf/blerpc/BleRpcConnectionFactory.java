@@ -1,14 +1,21 @@
 package com.googlecode.protobuf.blerpc;
 
 import android.bluetooth.*;
+import android.bluetooth.le.ScanCallback;
+import android.bluetooth.le.ScanFilter;
+import android.bluetooth.le.ScanResult;
+import android.bluetooth.le.ScanSettings;
 import android.content.Context;
 import android.os.Handler;
+import android.os.ParcelUuid;
 import com.googlecode.protobuf.socketrpc.RpcConnectionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -197,9 +204,14 @@ public class BleRpcConnectionFactory extends BluetoothGattCallback implements Rp
         connection.onCharacteristicChanged(characteristic);
     }
 
-    private BluetoothAdapter.LeScanCallback connectScanCallback = new BluetoothAdapter.LeScanCallback() {
+    private DiscoveryListener createConnectionListener = new DiscoveryListener() {
         @Override
-        public void onLeScan(BluetoothDevice device, int rssi, byte[] scanRecord) {
+        public void onStarted() {
+            // not needed
+        }
+
+        @Override
+        public void onBleDeviceDiscovered(BluetoothDevice device, int rssi) {
             logger.debug("Device found: name={}, mac_address={}, other={}", device.getName(), device.getAddress(), device);
 
             // check already connected
@@ -231,6 +243,18 @@ public class BleRpcConnectionFactory extends BluetoothGattCallback implements Rp
             gattConnection = device.connectGatt(context, false, BleRpcConnectionFactory.this);
             gattConnection.connect();
         }
+
+        @Override
+        public void onFinished() {
+            // not needed
+        }
+    };
+
+    private BluetoothAdapter.LeScanCallback connectScanCallback = new BluetoothAdapter.LeScanCallback() {
+        @Override
+        public void onLeScan(BluetoothDevice device, int rssi, byte[] scanRecord) {
+
+        }
     };
 
     private BleConnection connection;
@@ -239,16 +263,138 @@ public class BleRpcConnectionFactory extends BluetoothGattCallback implements Rp
     /**
      * Discovery listener
      */
-    public interface DiscoveryListener extends BluetoothAdapter.LeScanCallback {
+    public interface DiscoveryListener {
         void onStarted();
+        void onBleDeviceDiscovered(BluetoothDevice device, int rssi);
         void onFinished();
     }
 
-    private DiscoveryListener discoveryListener;
+    /**
+     * BLE API
+     */
+    private interface IBLEAPI {
+        void startDiscovery();
+        void stopDiscovery();
+    }
+
+    /**
+     * BLE API until 21
+     */
+    private class BleApi_Pre21 implements IBLEAPI, BluetoothAdapter.LeScanCallback {
+
+        private DiscoveryListener listener;
+
+        public BleApi_Pre21(DiscoveryListener listener) {
+            this.listener = listener;
+        }
+
+        @Override
+        public void onLeScan(BluetoothDevice device, int rssi, byte[] scanRecord) {
+            listener.onBleDeviceDiscovered(device, rssi);
+        }
+
+        @Override
+        public void startDiscovery() {
+            adapter.startLeScan(new UUID[]{ serviceUUID }, this);
+        }
+
+        @Override
+        public void stopDiscovery() {
+            adapter.stopLeScan(this);
+        }
+    }
+
+    /**
+     * BLE API 21+
+     */
+    private class BleApi_21 extends ScanCallback implements IBLEAPI {
+
+        private DiscoveryListener listener;
+
+        public BleApi_21(DiscoveryListener listener) {
+            this.listener = listener;
+        }
+
+        @Override
+        public void onBatchScanResults(List<ScanResult> results) {
+            for (ScanResult eachResult : results)
+                handleScanResult(eachResult);
+        }
+
+        @Override
+        public void onScanFailed(int errorCode) {
+            logger.error("BLE SCAN FAILED: {}", errorCode);
+        }
+
+        @Override
+        public void onScanResult(int callbackType, ScanResult result) {
+            handleScanResult(result);
+        }
+
+        private void handleScanResult(ScanResult result) {
+            listener.onBleDeviceDiscovered(result.getDevice(), result.getRssi());
+        }
+
+        @Override
+        public void startDiscovery() {
+            // API 21
+            List<ScanFilter> filters = new ArrayList<ScanFilter>();
+
+            ScanFilter.Builder filterBuilder = new ScanFilter
+                .Builder()
+                .setServiceUuid(new ParcelUuid(serviceUUID));
+
+            if (targetBluetoothName != null)
+                filterBuilder.setDeviceName(targetBluetoothName);
+
+            if (targetMacAddress != null)
+                filterBuilder.setDeviceAddress(targetMacAddress);
+
+            filters.add(filterBuilder.build());
+
+            ScanSettings scanSettings = new ScanSettings.Builder()
+                .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
+                .setReportDelay(discoveryDelay)  // 0 for immediate callback (not working for me), > 0 for batch mode
+                .build();
+
+            adapter.getBluetoothLeScanner().startScan(filters, scanSettings, this);
+        }
+
+        @Override
+        public void stopDiscovery() {
+            adapter.getBluetoothLeScanner().stopScan(this);
+        }
+    }
+
+    private boolean useAPI21 = false;
+
+    public boolean isUseAPI21() {
+        return useAPI21;
+    }
+
+    public void setUseAPI21(boolean useAPI21) {
+        this.useAPI21 = useAPI21;
+    }
+
     private Handler discoveryHandler;
 
-    public void discover(DiscoveryListener discoveryListener) {
-        this.discoveryListener = discoveryListener;
+    private int discoveryDelay = 0;
+
+    public int getDiscoveryDelay() {
+        return discoveryDelay;
+    }
+
+    /**
+     * If using API 21 mode
+     * @param discoveryDelay
+     */
+    public void setDiscoveryDelay(int discoveryDelay) {
+        this.discoveryDelay = discoveryDelay;
+    }
+
+    private IBLEAPI bleApi;
+
+    public void discover(final DiscoveryListener userDiscoveryListener) {
         this.serverDiscovered = false;
 
         // turn BLE on
@@ -258,20 +404,23 @@ public class BleRpcConnectionFactory extends BluetoothGattCallback implements Rp
         }
 
         // started
-        this.discoveryListener.onStarted();
+        userDiscoveryListener.onStarted();
         logger.debug("Starting discovery");
-        adapter.startLeScan(new UUID[]{ serviceUUID }, this.discoveryListener);
+
+        bleApi = (useAPI21
+            ? new BleApi_21(userDiscoveryListener)
+            : new BleApi_Pre21(userDiscoveryListener));
+        bleApi.startDiscovery();
 
         // schedule discovery timeout
         discoveryHandler.postDelayed(new Runnable() {
             @Override
             public void run() {
                 logger.warn("Discovery timeout fired ({})", discoveryTimeout);
-
-                adapter.stopLeScan(BleRpcConnectionFactory.this.discoveryListener);
+                bleApi.stopDiscovery();
 
                 // finished
-                BleRpcConnectionFactory.this.discoveryListener.onFinished();
+                userDiscoveryListener.onFinished();
             }
         }, discoveryTimeout);
     }
@@ -292,11 +441,14 @@ public class BleRpcConnectionFactory extends BluetoothGattCallback implements Rp
             adapter.enable();
         }
 
+        bleApi = (useAPI21
+            ? new BleApi_21(createConnectionListener)
+            : new BleApi_Pre21(createConnectionListener));
+
         // start connection
         long discoveryStarted = System.currentTimeMillis();
-
         logger.debug("Start discovery at {}", discoveryStarted);
-        adapter.startLeScan(new UUID[]{ serviceUUID }, connectScanCallback);
+        bleApi.startDiscovery();
 
         // wait for connected
         while (!connected.get()) {
@@ -309,7 +461,7 @@ public class BleRpcConnectionFactory extends BluetoothGattCallback implements Rp
             if ((System.currentTimeMillis() - discoveryStarted) > discoveryTimeout) {
                 logger.warn("Discovery timeout exceeded ({})", discoveryTimeout);
 
-                adapter.stopLeScan(connectScanCallback);
+                bleApi.stopDiscovery();
                 throw new DiscoveryTimeoutException(targetMacAddress, targetBluetoothName, discoveryTimeout);
             }
         }
