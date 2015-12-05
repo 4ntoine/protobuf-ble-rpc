@@ -237,7 +237,7 @@ public class BleRpcConnectionFactory extends BluetoothGattCallback implements Rp
             serverDiscovered = true;
 
             logger.debug("Stopping discovery");
-            adapter.stopLeScan(connectScanCallback);
+            bleApi.stopDiscovery();
 
             logger.debug("Connecting to device");
             gattConnection = device.connectGatt(context, false, BleRpcConnectionFactory.this);
