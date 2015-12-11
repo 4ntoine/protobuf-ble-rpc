@@ -211,8 +211,8 @@ public class BleRpcConnectionFactory extends BluetoothGattCallback implements Rp
         }
 
         @Override
-        public void onBleDeviceDiscovered(BluetoothDevice device, int rssi) {
-            logger.debug("Device found: name={}, mac_address={}, other={}", device.getName(), device.getAddress(), device);
+        public void onBleDeviceDiscovered(BluetoothDevice device, int rssi, String scanDeviceName) {
+            logger.debug("Device found: name={} ({}), mac_address={}, other={}", device.getName(), scanDeviceName, device.getAddress(), device);
 
             // check already connected
             if (serverDiscovered) {
@@ -227,7 +227,7 @@ public class BleRpcConnectionFactory extends BluetoothGattCallback implements Rp
             }
 
             // if it's not our target device using ble name
-            if (targetBluetoothName != null && !device.getName().equals(targetBluetoothName)) {
+            if (targetBluetoothName != null && !targetBluetoothName.equals(scanDeviceName)) {
                 logger.debug("not our device using bluetooth name");
                 return;
             }
@@ -265,7 +265,7 @@ public class BleRpcConnectionFactory extends BluetoothGattCallback implements Rp
      */
     public interface DiscoveryListener {
         void onStarted();
-        void onBleDeviceDiscovered(BluetoothDevice device, int rssi);
+        void onBleDeviceDiscovered(BluetoothDevice device, int rssi, String deviceName);
         void onFinished();
     }
 
@@ -290,7 +290,16 @@ public class BleRpcConnectionFactory extends BluetoothGattCallback implements Rp
 
         @Override
         public void onLeScan(BluetoothDevice device, int rssi, byte[] scanRecord) {
-            listener.onBleDeviceDiscovered(device, rssi);
+            String scanDeviceName = null;
+            try {
+                // parse using our own helper class
+                final BleAdvertisedData scanData = BleHelper.parseAdertisedData(scanRecord);
+                scanDeviceName = scanData.getName();
+            } catch (Throwable t) {
+                logger.error("Failed to parse scan data", t);
+            }
+
+            listener.onBleDeviceDiscovered(device, rssi, scanDeviceName);
         }
 
         @Override
@@ -332,7 +341,8 @@ public class BleRpcConnectionFactory extends BluetoothGattCallback implements Rp
         }
 
         private void handleScanResult(ScanResult result) {
-            listener.onBleDeviceDiscovered(result.getDevice(), result.getRssi());
+            // on api 21 and later we're having scan name from android (result.getScanRecord().getDeviceName())
+            listener.onBleDeviceDiscovered(result.getDevice(), result.getRssi(), result.getScanRecord().getDeviceName());
         }
 
         @Override

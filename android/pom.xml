@@ -6,9 +6,9 @@
 
 	<groupId>com.googlecode.protobuf.blerpc</groupId>
     <artifactId>parent</artifactId>
-    <version>2.5.1</version>
+    <version>2.6</version>
     <packaging>pom</packaging>
-	<description>Protobuf BLE RPC (peripheral + cental)</description>
+	<description>Protobuf BLE RPC (peripheral + central)</description>
     <name>Protobuf BLE RPC</name>
 
     <developers>
@@ -19,7 +19,7 @@
     </developers>
 
     <properties>
-        <version>2.5.1</version>
+        <version>2.6</version>
         <protobuf.version>2.6.1</protobuf.version>
     </properties>
 	
