@@ -1,10 +1,7 @@
 package com.googlecode.protobuf.blerpc;
 
 import android.bluetooth.*;
-import android.bluetooth.le.ScanCallback;
-import android.bluetooth.le.ScanFilter;
-import android.bluetooth.le.ScanResult;
-import android.bluetooth.le.ScanSettings;
+import android.bluetooth.le.*;
 import android.content.Context;
 import android.os.Handler;
 import android.os.ParcelUuid;
@@ -367,7 +364,23 @@ public class BleRpcConnectionFactory extends BluetoothGattCallback implements Rp
                 .setReportDelay(discoveryDelay)  // 0 for immediate callback (not working for me), > 0 for batch mode
                 .build();
 
-            adapter.getBluetoothLeScanner().startScan(filters, scanSettings, this);
+            BluetoothLeScanner scanner = adapter.getBluetoothLeScanner();
+            if (scanner == null) {
+                if (adapter.isEnabled())
+                    adapter.enable();
+
+                // wait for adapter to be enabled
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                }
+                scanner = adapter.getBluetoothLeScanner();
+                if (scanner == null) {
+                    logger.error("Failed to get LE scanner");
+                    throw new RuntimeException("Failed to get LE scanner");
+                }
+            }
+            scanner.startScan(filters, scanSettings, this);
         }
 
         @Override
