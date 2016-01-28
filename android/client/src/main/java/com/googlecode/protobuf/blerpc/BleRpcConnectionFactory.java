@@ -366,18 +366,17 @@ public class BleRpcConnectionFactory extends BluetoothGattCallback implements Rp
 
             BluetoothLeScanner scanner = adapter.getBluetoothLeScanner();
             if (scanner == null) {
-                if (adapter.isEnabled())
+                if (!adapter.isEnabled())
                     adapter.enable();
 
+                long started = System.currentTimeMillis();
+
                 // wait for adapter to be enabled
-                try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException e) {
-                }
-                scanner = adapter.getBluetoothLeScanner();
-                if (scanner == null) {
-                    logger.error("Failed to get LE scanner");
-                    throw new RuntimeException("Failed to get LE scanner");
+                while ((scanner = adapter.getBluetoothLeScanner()) == null) {
+                    try { Thread.sleep(50); } catch (InterruptedException e) {}
+
+                    if ((System.currentTimeMillis() - started) > 5000)
+                        throw new RuntimeException("Failed to get LE scanner");
                 }
             }
             scanner.startScan(filters, scanSettings, this);
