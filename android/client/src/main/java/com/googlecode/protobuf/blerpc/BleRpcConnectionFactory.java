@@ -269,7 +269,7 @@ public class BleRpcConnectionFactory extends BluetoothGattCallback implements Rp
     /**
      * BLE API
      */
-    private interface IBLEAPI {
+    private interface IBleApi {
         void startDiscovery();
         void stopDiscovery();
     }
@@ -277,7 +277,7 @@ public class BleRpcConnectionFactory extends BluetoothGattCallback implements Rp
     /**
      * BLE API until 21
      */
-    private class BleApi_Pre21 implements IBLEAPI, BluetoothAdapter.LeScanCallback {
+    private class BleApi_Pre21 implements IBleApi, BluetoothAdapter.LeScanCallback {
 
         private DiscoveryListener listener;
 
@@ -313,7 +313,7 @@ public class BleRpcConnectionFactory extends BluetoothGattCallback implements Rp
     /**
      * BLE API 21+
      */
-    private class BleApi_21 extends ScanCallback implements IBLEAPI {
+    private class BleApi_21 extends ScanCallback implements IBleApi {
 
         private DiscoveryListener listener;
 
@@ -323,8 +323,9 @@ public class BleRpcConnectionFactory extends BluetoothGattCallback implements Rp
 
         @Override
         public void onBatchScanResults(List<ScanResult> results) {
-            for (ScanResult eachResult : results)
-                handleScanResult(eachResult);
+            if (results != null)
+                for (ScanResult eachResult : results)
+                    handleScanResult(eachResult);
         }
 
         @Override
@@ -338,6 +339,36 @@ public class BleRpcConnectionFactory extends BluetoothGattCallback implements Rp
         }
 
         private void handleScanResult(ScanResult result) {
+            logger.debug("ScanResult: {}", result);
+
+            // some devices does not support it, so we have to filter ourselves
+            if (!adapter.isOffloadedFilteringSupported()) {
+                logger.warn("Software service UUID filtering");
+                if (result.getScanRecord().getServiceUuids() != null) {
+
+                    boolean foundService = false;
+                    for (ParcelUuid eachServiceUuid : result.getScanRecord().getServiceUuids()) {
+                        logger.debug("Checking {}", eachServiceUuid);
+                        if (eachServiceUuid.getUuid().equals(serviceUUID)) {
+                            // found required service
+                            logger.debug("Found required service UUID, invoking callback");
+                            foundService = true;
+                            break;
+                        }
+                    }
+
+                    if (!foundService) {
+                        logger.warn("No required service UUID found in declared services, exiting");
+                        return;
+                    }
+                } else {
+                    logger.warn("No services declared in scan record, exiting");
+                    return;
+                }
+            } else {
+                logger.warn("Using built-in service UUID filtering");
+            }
+
             // on api 21 and later we're having scan name from android (result.getScanRecord().getDeviceName())
             listener.onBleDeviceDiscovered(result.getDevice(), result.getRssi(), result.getScanRecord().getDeviceName());
         }
@@ -346,10 +377,14 @@ public class BleRpcConnectionFactory extends BluetoothGattCallback implements Rp
         public void startDiscovery() {
             // API 21
             List<ScanFilter> filters = new ArrayList<ScanFilter>();
+            ScanFilter.Builder filterBuilder = new ScanFilter.Builder();
 
-            ScanFilter.Builder filterBuilder = new ScanFilter
-                .Builder()
-                .setServiceUuid(new ParcelUuid(serviceUUID));
+            // can be not supported (filtering in onScanResult)
+            if (!adapter.isOffloadedFilteringSupported()) {
+                logger.warn("OffloadedFiltering is not supported, filtering scan results later");
+            } else {
+                filterBuilder.setServiceUuid(new ParcelUuid(serviceUUID));
+            }
 
             if (targetBluetoothName != null)
                 filterBuilder.setDeviceName(targetBluetoothName);
@@ -359,10 +394,17 @@ public class BleRpcConnectionFactory extends BluetoothGattCallback implements Rp
 
             filters.add(filterBuilder.build());
 
-            ScanSettings scanSettings = new ScanSettings.Builder()
-                .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
-                .setReportDelay(discoveryDelay)  // 0 for immediate callback (not working for me), > 0 for batch mode
-                .build();
+            ScanSettings.Builder scanBuilder = new ScanSettings.Builder()
+                .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY);
+
+            // can be not supported
+            if (!adapter.isOffloadedScanBatchingSupported()) {
+                logger.warn("OffloadedScanBatching is not supported");
+            } else {
+                scanBuilder.setReportDelay(discoveryDelay);  // 0 for immediate callback (not working for me), > 0 for batch mode
+            }
+
+            ScanSettings scanSettings = scanBuilder.build();
 
             BluetoothLeScanner scanner = adapter.getBluetoothLeScanner();
             if (scanner == null) {
@@ -414,7 +456,7 @@ public class BleRpcConnectionFactory extends BluetoothGattCallback implements Rp
         this.discoveryDelay = discoveryDelay;
     }
 
-    private IBLEAPI bleApi;
+    private IBleApi bleApi;
 
     public void discover(final DiscoveryListener userDiscoveryListener) {
         this.serverDiscovered = false;
