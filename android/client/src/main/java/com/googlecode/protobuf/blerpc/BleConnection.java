@@ -154,6 +154,7 @@ public class BleConnection implements RpcConnectionFactory.Connection {
 
         // close BLE connection
         connection.disconnect();
+        connection.close();
 
         closed = true;
     }

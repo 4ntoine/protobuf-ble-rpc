@@ -130,6 +130,7 @@ public class BleRpcConnectionFactory extends BluetoothGattCallback implements Rp
             logger.error("Failed to find read/write char, disconnecting");
 
             gattConnection.disconnect();
+            gattConnection.close();
             gattConnection = null;
             connectionThrowable = new Throwable("Service or read/write characteristics not found");
             connected.set(true); // just to unblock thread
@@ -142,6 +143,7 @@ public class BleRpcConnectionFactory extends BluetoothGattCallback implements Rp
         } catch (IOException e) {
             logger.warn("Failed to create new connection", e);
             gattConnection.disconnect();
+            gattConnection.close();
             gattConnection = null;
             connectionThrowable = e;
             connected.set(true); // just to unblock thread
@@ -526,6 +528,7 @@ public class BleRpcConnectionFactory extends BluetoothGattCallback implements Rp
                 // we can be connected to the device but we can have no services returned (timeout)
                 if (gattConnection != null) {
                     gattConnection.disconnect();
+                    gattConnection.close();
                     gattConnection = null;
                 }
 
