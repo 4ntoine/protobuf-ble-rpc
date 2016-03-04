@@ -64,6 +64,7 @@ public class BleRpcConnectionFactory extends BluetoothGattCallback implements Rp
 
     private volatile boolean serverDiscovered = false;
     private AtomicBoolean connected = new AtomicBoolean(false);
+    private AtomicBoolean connecting = new AtomicBoolean(false);
 
     public BleRpcConnectionFactory(Context context,
                                    String serviceUUID,
@@ -93,14 +94,33 @@ public class BleRpcConnectionFactory extends BluetoothGattCallback implements Rp
         Log.d(TAG, "Connection state changed from " + state + " to " + newState);
 
         if (newState == BluetoothProfile.STATE_CONNECTED) {
+
+            if (connectionThrowable != null) {
+                Log.w(TAG, "Eventually connected after 133 -> 0 error, clearing error");
+                connectionThrowable = null;
+            }
+
             Log.d(TAG, "Start discovering services");
             gatt.discoverServices();
+        }
+
+        if (newState == BluetoothProfile.STATE_DISCONNECTED) {
+            Log.d(TAG, "Disconnected");
+            if (connection != null)
+                connection.notifyDisconnected();
+
+            if (connecting.get() && state == 133) {
+                Log.e(TAG, "Fatal BLE connect error");
+                connectionThrowable = new FailedToConnectException();
+            }
+
+            connection = null;
         }
     }
 
     @Override
     public void onConnectionStateChange(final BluetoothGatt gatt, final int state, final int newState) {
-        Log.d(TAG, "onConnectionStateChange(state=" + state +", newState=" + newState + ")");
+        Log.d(TAG, "onConnectionStateChange(state=" + state + ", newState=" + newState + ")");
 
         new Thread(new Runnable() {
             @Override
@@ -135,7 +155,7 @@ public class BleRpcConnectionFactory extends BluetoothGattCallback implements Rp
             gattConnection.disconnect();
             gattConnection.close();
             gattConnection = null;
-            connectionThrowable = new Throwable("Service or read/write characteristics not found");
+            connectionThrowable = new NoCharacteristicsException();
             connected.set(true); // just to unblock thread
             return;
         }
@@ -208,6 +228,8 @@ public class BleRpcConnectionFactory extends BluetoothGattCallback implements Rp
         connection.onCharacteristicChanged(characteristic);
     }
 
+    private Integer afterDiscoverSleepMs = new Integer(100); // ms
+
     private DiscoveryListener createConnectionListener = new DiscoveryListener() {
         @Override
         public void onStarted() {
@@ -243,6 +265,14 @@ public class BleRpcConnectionFactory extends BluetoothGattCallback implements Rp
             Log.w(TAG, "Stopping discovery");
             bleApi.stopDiscovery();
 
+            if (afterDiscoverSleepMs != null) {
+                Log.w(TAG, "Sleeping after discovered (ms): " + afterDiscoverSleepMs);
+                try {
+                    Thread.sleep(afterDiscoverSleepMs);
+                } catch (InterruptedException e) {
+                }
+            }
+
             Log.w(TAG, "Connecting to device");
             gattConnection = device.connectGatt(context, false, BleRpcConnectionFactory.this);
             gattConnection.connect();
@@ -255,7 +285,7 @@ public class BleRpcConnectionFactory extends BluetoothGattCallback implements Rp
     };
 
     private BleConnection connection;
-    private Throwable connectionThrowable;
+    private IOException connectionThrowable;
 
     /**
      * Discovery listener
@@ -496,10 +526,12 @@ public class BleRpcConnectionFactory extends BluetoothGattCallback implements Rp
 
         this.serverDiscovered = false;
         gattConnection = null;
+        connection = null;
 
         // create connection every time it's required
         connectionThrowable = null;
         connected.set(false);
+        connecting.set(true);
 
         // turn BLE on
         if (!adapter.isEnabled()) {
@@ -513,7 +545,7 @@ public class BleRpcConnectionFactory extends BluetoothGattCallback implements Rp
 
         // start connection
         long discoveryStarted = System.currentTimeMillis();
-        Log.w(TAG, "Start discovery at " + discoveryStarted);
+        Log.w(TAG, "Start discovery");
         bleApi.startDiscovery();
 
         // wait for connected
@@ -525,7 +557,7 @@ public class BleRpcConnectionFactory extends BluetoothGattCallback implements Rp
 
             // check timeout
             if ((System.currentTimeMillis() - discoveryStarted) > discoveryTimeout) {
-                Log.w(TAG, "Discovery timeout exceeded (" + discoveryTimeout);
+                Log.w(TAG, "Discovery timeout exceeded (" + discoveryTimeout + ")");
 
                 bleApi.stopDiscovery();
 
@@ -533,9 +565,18 @@ public class BleRpcConnectionFactory extends BluetoothGattCallback implements Rp
                 if (gattConnection != null) {
                     gattConnection.disconnect();
                     gattConnection.close();
+                    connecting.set(false);
+                    connected.set(false);
                     gattConnection = null;
                 }
 
+                // probably it was 133 -> 0 error
+                if (connectionThrowable != null) {
+                    Log.e(TAG, "Throwing " + connectionThrowable.getClass().getSimpleName());
+                    throw connectionThrowable;
+                }
+
+                Log.e(TAG, "Throwing DiscoveryTimeoutException");
                 throw new DiscoveryTimeoutException(targetMacAddress, targetBluetoothName, discoveryTimeout);
             }
         }
@@ -544,14 +585,33 @@ public class BleRpcConnectionFactory extends BluetoothGattCallback implements Rp
             Log.e(TAG, "connection throwable", connectionThrowable);
 
             connected.set(false);
-            throw new RuntimeException(connectionThrowable);
+            connecting.set(false);
+            throw connectionThrowable;
         }
+
+        Log.d(TAG, "Created connection in " + (System.currentTimeMillis() - discoveryStarted) + " ms");
+        connecting.set(false);
 
         return connection;
     }
 
     /**
-     * Throws when not discovered within Timeout
+     * Thrown when error 133 is returned
+     *
+     */
+    public static class FailedToConnectException extends IOException {
+
+    }
+
+    /**
+     * Thrown when no read/write characteristics is found
+     */
+
+    public static class NoCharacteristicsException extends IOException {
+    }
+
+    /**
+     * Thrown when not discovered within Timeout
      */
     public static class DiscoveryTimeoutException extends IOException {
 
