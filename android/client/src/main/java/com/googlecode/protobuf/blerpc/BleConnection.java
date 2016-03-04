@@ -180,11 +180,29 @@ public class BleConnection implements RpcConnectionFactory.Connection {
         Log.w(TAG, "disconnecting");
         connection.disconnect();
 
+        // wait until actually disconnected
+        int  disconnectWaited = 0;
+        while (!disconnected.get()) {
+            try {
+                Thread.sleep(100);
+                disconnectWaited += 100;
+
+                if (disconnectWaited > 5000) {
+                    Log.w(TAG, "Waited for too long until actually disconnected");
+                    break;
+                }
+
+            } catch (InterruptedException e) {
+            }
+        }
+
         Log.w(TAG, "closing connection");
         connection.close();
 
         closed = true;
     }
+
+    private AtomicBoolean disconnected = new AtomicBoolean(false);
 
     @Override
     public boolean isClosed() {
@@ -201,5 +219,9 @@ public class BleConnection implements RpcConnectionFactory.Connection {
         // incoming bytes arrive, need to notify input stream
         if (characteristic == readChar)
             in.doRead(characteristic.getValue());
+    }
+
+    public void notifyDisconnected() {
+        disconnected.set(true);
     }
 }
