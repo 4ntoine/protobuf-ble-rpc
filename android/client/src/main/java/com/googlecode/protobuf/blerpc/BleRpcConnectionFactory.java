@@ -5,6 +5,7 @@ import android.bluetooth.le.*;
 import android.content.Context;
 import android.os.Handler;
 import android.os.ParcelUuid;
+import android.util.Log;
 import com.googlecode.protobuf.socketrpc.RpcConnectionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,7 +22,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class BleRpcConnectionFactory extends BluetoothGattCallback implements RpcConnectionFactory {
 
-    private Logger logger = LoggerFactory.getLogger(BleRpcConnectionFactory.class.getSimpleName());
+    private static final String TAG = BleRpcConnectionFactory.class.getSimpleName();
+//    private Logger logger = LoggerFactory.getLogger(BleRpcConnectionFactory.class.getSimpleName());
 
     public static final int DISCOVERY_TIMEOUT  = 10 * 1000; // 10 seconds
 
@@ -35,12 +37,12 @@ public class BleRpcConnectionFactory extends BluetoothGattCallback implements Rp
     private String targetBluetoothName;
 
     public void setTargetMacAddress(String targetMacAddress) {
-        logger.warn("target mac address={}", targetMacAddress);
+        Log.d(TAG, "target mac address=" + targetMacAddress);
         this.targetMacAddress = targetMacAddress;
     }
 
     public void setTargetBluetoothName(String targetBluetoothName) {
-        logger.warn("target bluetooth name={}", targetBluetoothName);
+        Log.d(TAG, "target bluetooth name=" + targetBluetoothName);
         this.targetBluetoothName = targetBluetoothName;
     }
 
@@ -87,47 +89,48 @@ public class BleRpcConnectionFactory extends BluetoothGattCallback implements Rp
         this(context, serviceUUID, null, null, readCharUUID, writeCharUUID, delimited);
     }
 
-    public void _onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
-        logger.warn("Connection state changed from {} to {}", status, newState);
+    public void _onConnectionStateChange(BluetoothGatt gatt, int state, int newState) {
+        Log.d(TAG, "Connection state changed from " + state + " to " + newState);
 
         if (newState == BluetoothProfile.STATE_CONNECTED) {
+            Log.d(TAG, "Start discovering services");
             gatt.discoverServices();
         }
     }
 
     @Override
-    public void onConnectionStateChange(final BluetoothGatt gatt, final int status, final int newState) {
-        logger.warn("onConnectionStateChange()");
+    public void onConnectionStateChange(final BluetoothGatt gatt, final int state, final int newState) {
+        Log.d(TAG, "onConnectionStateChange(state=" + state +", newState=" + newState + ")");
 
         new Thread(new Runnable() {
             @Override
             public void run() {
-                _onConnectionStateChange(gatt, status, newState);
+                _onConnectionStateChange(gatt, state, newState);
             }
         }).start();
     }
 
-    public void _onServicesDiscovered(BluetoothGatt gatt, int status) {
-        logger.warn("_onServicesDiscovered: status={}", status);
+    public void _onServicesDiscovered(BluetoothGatt gatt, int state) {
+        Log.d(TAG, "_onServicesDiscovered: state=" + state);
 
         for (BluetoothGattService eachService : gatt.getServices())
             if (eachService.getUuid().equals(serviceUUID)) {
                 // find characteristics
                 for (BluetoothGattCharacteristic eachCharacteristic : eachService.getCharacteristics()) {
                     if (eachCharacteristic.getUuid().equals(readCharUUID)) {
-                        logger.warn("Found read char");
+                        Log.w(TAG, "Found read char");
                         readChar = eachCharacteristic; // change subscription is done in BleConnection
                     }
 
                     if (eachCharacteristic.getUuid().equals(writeCharUUID)) {
-                        logger.warn("Found write char");
+                        Log.d(TAG, "Found write char");
                         writeChar = eachCharacteristic;
                     }
                 }
             }
 
         if (readChar == null || writeChar == null) {
-            logger.error("Failed to find read/write char, disconnecting");
+            Log.e(TAG, "Failed to find read/write char, disconnecting");
 
             gattConnection.disconnect();
             gattConnection.close();
@@ -138,10 +141,10 @@ public class BleRpcConnectionFactory extends BluetoothGattCallback implements Rp
         }
 
         try {
-            logger.warn("Creating new connection");
+            Log.e(TAG, "Creating new connection");
             connection = new BleConnection(gattConnection, writeChar, readChar, delimited);
         } catch (IOException e) {
-            logger.warn("Failed to create new connection", e);
+            Log.w(TAG, "Failed to create new connection", e);
             gattConnection.disconnect();
             gattConnection.close();
             gattConnection = null;
@@ -149,7 +152,7 @@ public class BleRpcConnectionFactory extends BluetoothGattCallback implements Rp
             connected.set(true); // just to unblock thread
             return;
         }
-        logger.warn("Subscribing");
+        Log.w(TAG, "Subscribing");
         connection.subscribe(); // blocks thread
 
         connected.set(true); // signal to return connection
@@ -157,7 +160,7 @@ public class BleRpcConnectionFactory extends BluetoothGattCallback implements Rp
 
     @Override
     public void onServicesDiscovered(final BluetoothGatt gatt, final int status) {
-        logger.warn("onServicesDiscovered()");
+        Log.w(TAG, "onServicesDiscovered()");
 
         new Thread(new Runnable() {
             @Override
@@ -168,13 +171,13 @@ public class BleRpcConnectionFactory extends BluetoothGattCallback implements Rp
     }
 
     public void _onDescriptorWrite(BluetoothGatt gatt, BluetoothGattDescriptor descriptor, int status) {
-        logger.warn("_onDescriptorWrite(status={})", status);
+        Log.w(TAG, "_onDescriptorWrite(status=" + status + ")");
         connection.notifyDescriptorWritten(descriptor);
     }
 
     @Override
     public void onDescriptorWrite(final BluetoothGatt gatt, final BluetoothGattDescriptor descriptor, final int status) {
-        logger.warn("onDescriptorWrite()");
+        Log.w(TAG, "onDescriptorWrite()");
 
         new Thread(new Runnable() {
             @Override
@@ -186,7 +189,7 @@ public class BleRpcConnectionFactory extends BluetoothGattCallback implements Rp
 
     @Override
     public void onCharacteristicWrite(final BluetoothGatt gatt, final BluetoothGattCharacteristic characteristic, final int status) {
-        logger.warn("onCharacteristicWrite()");
+        Log.w(TAG, "onCharacteristicWrite()");
 
         new Thread(new Runnable() {
             @Override
@@ -199,7 +202,7 @@ public class BleRpcConnectionFactory extends BluetoothGattCallback implements Rp
 
     @Override
     public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
-        logger.warn("onCharacteristicChanged()");
+        Log.w(TAG, "onCharacteristicChanged()");
 
         // WARNING: not in new background thread (in contrast to other on.. events) !
         connection.onCharacteristicChanged(characteristic);
@@ -213,34 +216,34 @@ public class BleRpcConnectionFactory extends BluetoothGattCallback implements Rp
 
         @Override
         public void onBleDeviceDiscovered(BluetoothDevice device, int rssi, String scanDeviceName) {
-            logger.warn("Device found: name={} ({}), mac_address={}, other={}", device.getName(), scanDeviceName, device.getAddress(), device);
+            Log.w(TAG, "Device found: name=" + device.getName() + " (" + scanDeviceName + "), mac_address=" + device.getAddress() + ", other=" + device);
 
             // check already connected
             if (serverDiscovered) {
-                logger.warn("Already discovered, skipping device");
+                Log.w(TAG, "Already discovered, skipping device");
                 return;
             }
 
             // if it's not our target device using mac address
             if (targetMacAddress != null && !device.getAddress().equals(targetMacAddress)) {
-                logger.warn("not our device using mac address");
+                Log.w(TAG, "not our device using mac address");
                 return;
             }
 
             // if it's not our target device using ble name
             if (targetBluetoothName != null && !targetBluetoothName.equals(scanDeviceName)) {
-                logger.warn("not our device using bluetooth name");
+                Log.w(TAG, "not our device using bluetooth name");
                 return;
             }
 
-            logger.warn("Found and accepted BLE device: {}", device);
+            Log.w(TAG, "Found and accepted BLE device: " + device);
 
             serverDiscovered = true;
 
-            logger.warn("Stopping discovery");
+            Log.w(TAG, "Stopping discovery");
             bleApi.stopDiscovery();
 
-            logger.warn("Connecting to device");
+            Log.w(TAG, "Connecting to device");
             gattConnection = device.connectGatt(context, false, BleRpcConnectionFactory.this);
             gattConnection.connect();
         }
@@ -290,9 +293,10 @@ public class BleRpcConnectionFactory extends BluetoothGattCallback implements Rp
                 final BleAdvertisedData scanData = BleHelper.parseAdertisedData(scanRecord);
                 scanDeviceName = scanData.getName();
             } catch (Throwable t) {
-                logger.error("Failed to parse scan data", t);
+                Log.e(TAG, "Failed to parse scan data", t);
             }
 
+            Log.d(TAG, "Device found: " + device.getName() + " (" + scanDeviceName + ")");
             listener.onBleDeviceDiscovered(device, rssi, scanDeviceName);
         }
 
@@ -327,7 +331,7 @@ public class BleRpcConnectionFactory extends BluetoothGattCallback implements Rp
 
         @Override
         public void onScanFailed(int errorCode) {
-            logger.error("BLE SCAN FAILED: {}", errorCode);
+            Log.w(TAG, "BLE SCAN FAILED: " + errorCode);
         }
 
         @Override
@@ -336,34 +340,34 @@ public class BleRpcConnectionFactory extends BluetoothGattCallback implements Rp
         }
 
         private void handleScanResult(ScanResult result) {
-            logger.warn("ScanResult: {}", result);
+            Log.w(TAG, "ScanResult: " + result);
 
             // some devices does not support it, so we have to filter ourselves
             if (!adapter.isOffloadedFilteringSupported()) {
-                logger.warn("Software service UUID filtering");
+                Log.w(TAG, "Software service UUID filtering");
                 if (result.getScanRecord().getServiceUuids() != null) {
 
                     boolean foundService = false;
                     for (ParcelUuid eachServiceUuid : result.getScanRecord().getServiceUuids()) {
-                        logger.warn("Checking {}", eachServiceUuid);
+                        Log.w(TAG, "Checking " + eachServiceUuid);
                         if (eachServiceUuid.getUuid().equals(serviceUUID)) {
                             // found required service
-                            logger.warn("Found required service UUID, invoking callback");
+                            Log.w(TAG, "Found required service UUID, invoking callback");
                             foundService = true;
                             break;
                         }
                     }
 
                     if (!foundService) {
-                        logger.warn("No required service UUID found in declared services, exiting");
+                        Log.w(TAG, "No required service UUID found in declared services, exiting");
                         return;
                     }
                 } else {
-                    logger.warn("No services declared in scan record, exiting");
+                    Log.w(TAG, "No services declared in scan record, exiting");
                     return;
                 }
             } else {
-                logger.warn("Using built-in service UUID filtering");
+                Log.w(TAG, "Using built-in service UUID filtering");
             }
 
             // on api 21 and later we're having scan name from android (result.getScanRecord().getDeviceName())
@@ -378,7 +382,7 @@ public class BleRpcConnectionFactory extends BluetoothGattCallback implements Rp
 
             // can be not supported (filtering in onScanResult)
             if (!adapter.isOffloadedFilteringSupported()) {
-                logger.warn("OffloadedFiltering is not supported, filtering scan results later");
+                Log.w(TAG, "OffloadedFiltering is not supported, filtering scan results later");
             } else {
                 filterBuilder.setServiceUuid(new ParcelUuid(serviceUUID));
             }
@@ -396,7 +400,7 @@ public class BleRpcConnectionFactory extends BluetoothGattCallback implements Rp
 
             // can be not supported
             if (!adapter.isOffloadedScanBatchingSupported()) {
-                logger.warn("OffloadedScanBatching is not supported");
+                Log.w(TAG, "OffloadedScanBatching is not supported");
             } else {
                 scanBuilder.setReportDelay(discoveryDelay);  // 0 for immediate callback (not working for me), > 0 for batch mode
             }
@@ -460,13 +464,13 @@ public class BleRpcConnectionFactory extends BluetoothGattCallback implements Rp
 
         // turn BLE on
         if (!adapter.isEnabled()) {
-            logger.warn("Enabling BLE adapter");
+            Log.w(TAG, "Enabling BLE adapter");
             adapter.enable();
         }
 
         // started
         userDiscoveryListener.onStarted();
-        logger.warn("Starting discovery");
+        Log.w(TAG, "Starting discovery");
 
         bleApi = (useAPI21
             ? new BleApi_21(userDiscoveryListener)
@@ -477,7 +481,7 @@ public class BleRpcConnectionFactory extends BluetoothGattCallback implements Rp
         discoveryHandler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                logger.warn("Discovery timeout fired ({})", discoveryTimeout);
+                Log.w(TAG, "Discovery timeout fired : " + discoveryTimeout);
                 bleApi.stopDiscovery();
 
                 // finished
@@ -488,7 +492,7 @@ public class BleRpcConnectionFactory extends BluetoothGattCallback implements Rp
 
     @Override
     public Connection createConnection() throws IOException {
-        logger.warn("createConnection()");
+        Log.w(TAG, "createConnection()");
 
         this.serverDiscovered = false;
         gattConnection = null;
@@ -499,7 +503,7 @@ public class BleRpcConnectionFactory extends BluetoothGattCallback implements Rp
 
         // turn BLE on
         if (!adapter.isEnabled()) {
-            logger.warn("Enabling BLE adapter");
+            Log.w(TAG, "Enabling BLE adapter");
             adapter.enable();
         }
 
@@ -509,7 +513,7 @@ public class BleRpcConnectionFactory extends BluetoothGattCallback implements Rp
 
         // start connection
         long discoveryStarted = System.currentTimeMillis();
-        logger.warn("Start discovery at {}", discoveryStarted);
+        Log.w(TAG, "Start discovery at " + discoveryStarted);
         bleApi.startDiscovery();
 
         // wait for connected
@@ -521,7 +525,7 @@ public class BleRpcConnectionFactory extends BluetoothGattCallback implements Rp
 
             // check timeout
             if ((System.currentTimeMillis() - discoveryStarted) > discoveryTimeout) {
-                logger.warn("Discovery timeout exceeded ({})", discoveryTimeout);
+                Log.w(TAG, "Discovery timeout exceeded (" + discoveryTimeout);
 
                 bleApi.stopDiscovery();
 
@@ -537,7 +541,7 @@ public class BleRpcConnectionFactory extends BluetoothGattCallback implements Rp
         }
 
         if (connectionThrowable != null) {
-            logger.error("connection throwable", connectionThrowable);
+            Log.e(TAG, "connection throwable", connectionThrowable);
 
             connected.set(false);
             throw new RuntimeException(connectionThrowable);

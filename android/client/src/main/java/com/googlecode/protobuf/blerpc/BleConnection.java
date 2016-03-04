@@ -3,8 +3,11 @@ package com.googlecode.protobuf.blerpc;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattDescriptor;
+import android.util.Log;
 import com.google.protobuf.MessageLite;
 import com.googlecode.protobuf.socketrpc.RpcConnectionFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.util.Arrays;
@@ -15,6 +18,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * Connection for BLE (central role)
  */
 public class BleConnection implements RpcConnectionFactory.Connection {
+
+    private final String TAG = BleRpcConnectionFactory.class.getSimpleName();
 
     private BluetoothGatt connection;
     private BluetoothGattCharacteristic writeChar;
@@ -45,6 +50,7 @@ public class BleConnection implements RpcConnectionFactory.Connection {
     private BluetoothGattDescriptor readDescriptor;
 
     public boolean subscribe() {
+        Log.w(TAG, "Subscribing ...");
         subscribed.set(false);
 
         // subscribe to read notifications
@@ -64,8 +70,10 @@ public class BleConnection implements RpcConnectionFactory.Connection {
         subscribed.set(false);
         // making few attempts to subscribe
         for (int i=0; i<3; i++) {
-            if (connection.writeDescriptor(readDescriptor)) // post value to remote
+            if (connection.writeDescriptor(readDescriptor)) { // post value to remote
+                Log.w(TAG, "Descriptor written (subscribe)");
                 break;
+            }
 
             try {
                 Thread.sleep(50);
@@ -82,6 +90,8 @@ public class BleConnection implements RpcConnectionFactory.Connection {
             }
         }
 
+        Log.w(TAG, "Subscribed successfully");
+
         return true;
     }
 
@@ -97,6 +107,8 @@ public class BleConnection implements RpcConnectionFactory.Connection {
 
     @Override
     public void sendProtoMessage(MessageLite message) throws IOException {
+//        Log.w(TAG, "Sending proto: " + message);
+
         // Write message
         if (delimited) {
             message.writeDelimitedTo(out);
@@ -115,12 +127,20 @@ public class BleConnection implements RpcConnectionFactory.Connection {
         } else {
             messageBuilder.mergeFrom(in);
         }
+
+        try {
+//            Log.w(TAG, "Received proto: " + messageBuilder.build());
+        } catch (Exception e) {
+            Log.e(TAG, "Failed to build proto", e);
+        }
     }
 
     private boolean closed = false;
 
     @Override
     public void close() throws IOException {
+        Log.w(TAG, "start closing connection");
+
         // unsubscribe
         connection.setCharacteristicNotification(readChar, false);
 
@@ -131,8 +151,10 @@ public class BleConnection implements RpcConnectionFactory.Connection {
         // making few attempts to unsubscribe
         unsubscribed.set(false);
         for (int i=0; i<3; i++) {
-            if (connection.writeDescriptor(readDescriptor)) // post value to remote
+            if (connection.writeDescriptor(readDescriptor)) { // post value to remote
+                Log.w(TAG, "Descriptor written (unsubscribe)");
                 break;
+            }
 
             try {
                 Thread.sleep(50);
@@ -149,11 +171,16 @@ public class BleConnection implements RpcConnectionFactory.Connection {
             }
         }
 
+        Log.w(TAG, "Unsubscribed successfully");
+
         in.close();
         out.close();
 
         // close BLE connection
+        Log.w(TAG, "disconnecting");
         connection.disconnect();
+
+        Log.w(TAG, "closing connection");
         connection.close();
 
         closed = true;
