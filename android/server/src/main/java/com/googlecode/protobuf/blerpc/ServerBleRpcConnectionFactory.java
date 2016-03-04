@@ -120,7 +120,10 @@ public class ServerBleRpcConnectionFactory implements ServerRpcConnectionFactory
         this.disconnectUnsubscribedClients = disconnectUnsubscribedClients;
     }
 
-    public static final int DISCONNECT_UNSUBSCRIBED_INTERVAL = 3000;
+    public static final int DISCONNECT_CONNECTED_INTERVAL = 60000; // 1 minute
+    private int disconnectConnectedInterval = DISCONNECT_CONNECTED_INTERVAL;
+
+    public static final int DISCONNECT_UNSUBSCRIBED_INTERVAL = 3000; // 3 seconds
     private int disconnectUnsubscribedInterval = DISCONNECT_UNSUBSCRIBED_INTERVAL;
 
     public int getDisconnectUnsubscribedInterval() {
@@ -211,6 +214,11 @@ public class ServerBleRpcConnectionFactory implements ServerRpcConnectionFactory
 
                     // allow only 1 connection at the same time
                     stopAdvertising();
+
+                    // schedule disconnect
+                    logger.debug("Schedule disconnecting {} in {} ms (connected)", device, disconnectConnectedInterval);
+                    disconnectRunnable = new DisconnectRunnable(device);
+                    disconnectHandler.postDelayed(disconnectRunnable, disconnectConnectedInterval);
                 }
 
                 if (newState == BluetoothGatt.STATE_DISCONNECTED) {
@@ -280,7 +288,7 @@ public class ServerBleRpcConnectionFactory implements ServerRpcConnectionFactory
                     if (disconnectUnsubscribedClients) {
                         cancelDisconnectRunnableIfHaving(device); // the client can unsubscribe twice (iOS)
 
-                        logger.debug("Schedule disconnecting {}", device);
+                        logger.debug("Schedule disconnecting {} in {} ms (unsubscribed)", device, disconnectUnsubscribedInterval);
                         disconnectRunnable = new DisconnectRunnable(device);
                         disconnectHandler.postDelayed(disconnectRunnable, disconnectUnsubscribedInterval);
                     }
