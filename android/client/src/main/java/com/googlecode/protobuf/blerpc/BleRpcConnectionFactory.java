@@ -275,7 +275,6 @@ public class BleRpcConnectionFactory extends BluetoothGattCallback implements Rp
 
             Log.w(TAG, "Connecting to device");
             gattConnection = device.connectGatt(context, false, BleRpcConnectionFactory.this);
-            gattConnection.connect();
         }
 
         @Override
