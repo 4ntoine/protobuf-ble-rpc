@@ -109,9 +109,9 @@ public class BleRpcConnectionFactory extends BluetoothGattCallback implements Rp
             if (connection != null)
                 connection.notifyDisconnected();
 
-            if (connecting.get() && state == 133) {
-                Log.e(TAG, "Fatal BLE connect error");
-                connectionThrowable = new FailedToConnectException();
+            if (connecting.get() && (state == 133  /*  GATT_ERROR */ || state == 62)) {
+                Log.e(TAG, "BLE connect error");
+                connectionThrowable = new FailedToConnectException(state);
             }
 
             connection = null;
@@ -161,7 +161,7 @@ public class BleRpcConnectionFactory extends BluetoothGattCallback implements Rp
         }
 
         try {
-            Log.e(TAG, "Creating new connection");
+            Log.d(TAG, "Creating new connection");
             connection = new BleConnection(gattConnection, writeChar, readChar, delimited);
         } catch (IOException e) {
             Log.w(TAG, "Failed to create new connection", e);
@@ -300,7 +300,8 @@ public class BleRpcConnectionFactory extends BluetoothGattCallback implements Rp
      * BLE API
      */
     private interface IBleApi {
-        void startDiscovery();
+        void startDiscovery() throws IOException;
+        boolean isDiscovering();
         void stopDiscovery();
     }
 
@@ -310,6 +311,7 @@ public class BleRpcConnectionFactory extends BluetoothGattCallback implements Rp
     private class BleApi_Pre21 implements IBleApi, BluetoothAdapter.LeScanCallback {
 
         private DiscoveryListener listener;
+        private AtomicBoolean isDiscovering = new AtomicBoolean(false);
 
         public BleApi_Pre21(DiscoveryListener listener) {
             this.listener = listener;
@@ -332,13 +334,32 @@ public class BleRpcConnectionFactory extends BluetoothGattCallback implements Rp
 
         @Override
         public void startDiscovery() {
+            isDiscovering.set(true);
             adapter.startLeScan(new UUID[]{ serviceUUID }, this);
         }
 
         @Override
+        public boolean isDiscovering() {
+            return isDiscovering.get();
+        }
+
+        @Override
         public void stopDiscovery() {
+            isDiscovering.set(false);
             adapter.stopLeScan(this);
         }
+    }
+
+    public static final int GET_SCANNER_TIMEOUT = 5000; // 5s
+
+    private int getScannerTimeout = GET_SCANNER_TIMEOUT;
+
+    public int getGetScannerTimeout() {
+        return getScannerTimeout;
+    }
+
+    public void setGetScannerTimeout(int getScannerTimeout) {
+        this.getScannerTimeout = getScannerTimeout;
     }
 
     /**
@@ -347,6 +368,7 @@ public class BleRpcConnectionFactory extends BluetoothGattCallback implements Rp
     private class BleApi_21 extends ScanCallback implements IBleApi {
 
         private DiscoveryListener listener;
+        private AtomicBoolean isDiscovering = new AtomicBoolean(false);
 
         public BleApi_21(DiscoveryListener listener) {
             this.listener = listener;
@@ -405,7 +427,7 @@ public class BleRpcConnectionFactory extends BluetoothGattCallback implements Rp
         }
 
         @Override
-        public void startDiscovery() {
+        public void startDiscovery() throws IOException {
             // API 21
             List<ScanFilter> filters = new ArrayList<ScanFilter>();
             ScanFilter.Builder filterBuilder = new ScanFilter.Builder();
@@ -446,17 +468,24 @@ public class BleRpcConnectionFactory extends BluetoothGattCallback implements Rp
 
                 // wait for adapter to be enabled
                 while ((scanner = adapter.getBluetoothLeScanner()) == null) {
-                    try { Thread.sleep(50); } catch (InterruptedException e) {}
+                    try { Thread.sleep(50);} catch (InterruptedException e) {}
 
-                    if ((System.currentTimeMillis() - started) > 5000)
-                        throw new RuntimeException("Failed to get LE scanner");
+                    if ((System.currentTimeMillis() - started) > getScannerTimeout)
+                        throw new NoLeScannerException();
                 }
             }
+            isDiscovering.set(true);
             scanner.startScan(filters, scanSettings, this);
         }
 
         @Override
+        public boolean isDiscovering() {
+            return isDiscovering.get();
+        }
+
+        @Override
         public void stopDiscovery() {
+            isDiscovering.set(false);
             adapter.getBluetoothLeScanner().stopScan(this);
         }
     }
@@ -489,7 +518,7 @@ public class BleRpcConnectionFactory extends BluetoothGattCallback implements Rp
 
     private IBleApi bleApi;
 
-    public void discover(final DiscoveryListener userDiscoveryListener) {
+    public void discover(final DiscoveryListener userDiscoveryListener) throws IOException {
         this.serverDiscovered = false;
 
         // turn BLE on
@@ -559,7 +588,8 @@ public class BleRpcConnectionFactory extends BluetoothGattCallback implements Rp
             if ((System.currentTimeMillis() - discoveryStarted) > discoveryTimeout) {
                 Log.w(TAG, "Discovery timeout exceeded (" + discoveryTimeout + ")");
 
-                bleApi.stopDiscovery();
+                if (bleApi.isDiscovering())
+                    bleApi.stopDiscovery();
 
                 // we can be connected to the device but we can have no services returned (timeout)
                 if (gattConnection != null) {
@@ -601,6 +631,20 @@ public class BleRpcConnectionFactory extends BluetoothGattCallback implements Rp
      */
     public static class FailedToConnectException extends IOException {
 
+        private int state;
+
+        public int getState() {
+            return state;
+        }
+
+        public FailedToConnectException (int state) {
+            this.state = state;
+        }
+
+        @Override
+        public String getMessage() {
+            return MessageFormat.format("BLE error state: {0}", state);
+        }
     }
 
     /**
@@ -608,6 +652,13 @@ public class BleRpcConnectionFactory extends BluetoothGattCallback implements Rp
      */
 
     public static class NoCharacteristicsException extends IOException {
+    }
+
+    /**
+     * LE scanner is not available (null)
+     */
+    public static class NoLeScannerException extends IOException {
+
     }
 
     /**
