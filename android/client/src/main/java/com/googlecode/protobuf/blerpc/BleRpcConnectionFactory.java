@@ -109,9 +109,20 @@ public class BleRpcConnectionFactory extends BluetoothGattCallback implements Rp
             if (connection != null)
                 connection.notifyDisconnected();
 
-            if (connecting.get() && (state == 133  /*  GATT_ERROR */ || state == 62)) {
-                Log.e(TAG, "BLE connect error");
+            if (connecting.get() &&
+                (
+                    state == 133    // GATT_ERROR
+                 || state == 62
+                 || state == 129    // android 4.x
+                )
+               )
+            {
+                Log.e(TAG, "Fatal BLE connect error");
                 connectionThrowable = new FailedToConnectException(state);
+
+                // signal to unlock for waiting in createConnection()
+                if (connecting.get())
+                    connected.set(true);
             }
 
             connection = null;
@@ -599,12 +610,6 @@ public class BleRpcConnectionFactory extends BluetoothGattCallback implements Rp
                     gattConnection = null;
                 }
 
-                // probably it was 133 -> 0 error
-                if (connectionThrowable != null) {
-                    Log.e(TAG, "Throwing " + connectionThrowable.getClass().getSimpleName());
-                    throw connectionThrowable;
-                }
-
                 Log.e(TAG, "Throwing DiscoveryTimeoutException");
                 throw new DiscoveryTimeoutException(targetMacAddress, targetBluetoothName, discoveryTimeout);
             }
@@ -615,6 +620,7 @@ public class BleRpcConnectionFactory extends BluetoothGattCallback implements Rp
 
             connected.set(false);
             connecting.set(false);
+            Log.e(TAG, "NOT created connection in " + (System.currentTimeMillis() - discoveryStarted) + " ms");
             throw connectionThrowable;
         }
 
