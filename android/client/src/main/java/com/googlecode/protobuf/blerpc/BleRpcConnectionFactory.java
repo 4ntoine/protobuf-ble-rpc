@@ -496,7 +496,10 @@ public class BleRpcConnectionFactory extends BluetoothGattCallback implements Rp
         @Override
         public void stopDiscovery() {
             isDiscovering.set(false);
-            adapter.getBluetoothLeScanner().stopScan(this);
+
+            BluetoothLeScanner scanner = adapter.getBluetoothLeScanner();
+            if (scanner != null)
+                scanner.stopScan(this);
         }
     }
 
